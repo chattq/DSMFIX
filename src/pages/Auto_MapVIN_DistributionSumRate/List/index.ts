@@ -1,0 +1,1 @@
+export * from './Auto_MapVIN_DistributionSumRate'
