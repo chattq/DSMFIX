@@ -10,16 +10,18 @@ import { StatusButton } from "@/packages/ui/status-button";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
+import { requiredType } from "@/packages/common/Validation_Rules";
+import { DataGrid } from "devextreme-react";
 export const Dlr_CAPage = () => {
   const { t } = useI18n("Dlr_CA");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
 
@@ -173,74 +175,60 @@ export const Dlr_CAPage = () => {
     }
   }, [data]);
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "AutoId", // AutoId
-      caption: t("AutoId"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-    },
-    {
-      dataField: "DealerCode", // Mã đại lý
-      caption: t("DealerCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      headerFilter: {
-        dataSource: dealerFilter,
-      },
-      editorOptions: {
-        dataSource: listDealer?.DataList ?? [],
-        displayExpr: "DealerCode",
-        valueExpr: "DealerCode",
-      },
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(() => {
+    return [
+      {
+        dataField: "AutoId", // AutoId
+        caption: t("AutoId"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
         },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
-        },
-      ],
-    },
-    {
-      dataField: "CAIssuer", // Tên chữ ký
-      caption: t("CAIssuer"),
-      allowFiltering: false,
-      editorType: "dxTextBox",
-      visible: true,
-    },
-    {
-      dataField: "CASubject", // Nhà cung cấp
-      caption: t("CASubject"),
-      allowFiltering: false,
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
-        },
-      ],
-    },
-    {
-      dataField: "FlagActive", // Flag Active
-      caption: t("Flag Active"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
       },
-    },
-  ];
+      {
+        dataField: "DealerCode", // Mã đại lý
+        caption: t("DealerCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        headerFilter: {
+          dataSource: dealerFilter,
+        },
+        editorOptions: {
+          dataSource: listDealer?.DataList ?? [],
+          displayExpr: "DealerCode",
+          valueExpr: "DealerCode",
+        },
+        validationRules: [requiredType],
+      },
+      {
+        dataField: "CAIssuer", // Tên chữ ký
+        caption: t("CAIssuer"),
+        allowFiltering: false,
+        editorType: "dxTextBox",
+        visible: true,
+      },
+      {
+        dataField: "CASubject", // Nhà cung cấp
+        caption: t("CASubject"),
+        allowFiltering: false,
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [requiredType],
+      },
+      {
+        dataField: "FlagActive", // Flag Active
+        caption: t("Flag Active"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ] as any;
+  }, []);
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "AutoId") {
@@ -264,7 +252,10 @@ export const Dlr_CAPage = () => {
       });
     }
   };
-
+  const handleGridReady = useCallback((grid: any) => {
+    console.log("grid:", grid);
+    gridRef.current = grid;
+  }, []);
   return (
     <AdminContentLayout>
       <AdminContentLayout.Slot name="Header">
@@ -290,7 +281,7 @@ export const Dlr_CAPage = () => {
           keyExpr="AutoId"
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

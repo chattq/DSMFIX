@@ -13,17 +13,24 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "react-toastify";
 import { HeaderPart } from "./header-part";
 import { useSetAtom, useAtomValue } from "jotai";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 
 export const Mst_DelayTransportsPage = () => {
   const { t } = useI18n("Mst_DelayTransports");
   const config = useConfiguration();
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   const api = useClientgateApi();
@@ -48,8 +55,6 @@ export const Mst_DelayTransportsPage = () => {
   const { data: listStorage } = useQuery(["storage"], () =>
     api.Mst_Storage_GetAllActive()
   );
-
-  console.log("listDealer ", listDealer, "listStorage ", listStorage);
 
   useEffect(() => {
     if (!!data && !data.isSuccess) {
@@ -159,123 +164,125 @@ export const Mst_DelayTransportsPage = () => {
   const handleSelectionChanged = (rowKeys: string[]) => {
     setSelectedItems(rowKeys);
   };
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "StorageCode",
-      caption: t("StorageCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listStorage?.DataList ?? [],
-        displayExpr: "StorageCode",
-        valueExpr: "StorageCode",
-      },
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(() => {
+    return [
+      {
+        dataField: "StorageCode",
+        caption: t("StorageCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        editorOptions: {
+          dataSource: listStorage?.DataList ?? [],
+          displayExpr: "StorageCode",
+          valueExpr: "StorageCode",
         },
-      ],
-      allowFiltering: false,
-      setCellValue: (newData: any, value: any, currentRowData: any) => {
-        if (value !== undefined && value !== null) {
-          const data = listStorage?.DataList ?? [];
-          const item = data.find(
-            (item: Partial<Mst_DelayTransports>) => item.StorageCode === value
-          );
-          if (item) {
-            newData.StorageName = item.StorageName;
-          } else {
-            newData.StorageName = "";
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: false,
+        setCellValue: (newData: any, value: any, currentRowData: any) => {
+          if (value !== undefined && value !== null) {
+            const data = listStorage?.DataList ?? [];
+            const item = data.find(
+              (item: Partial<Mst_DelayTransports>) => item.StorageCode === value
+            );
+            if (item) {
+              newData.StorageName = item.StorageName;
+            } else {
+              newData.StorageName = "";
+            }
           }
-        }
-        newData.StorageCode = value;
-      },
-    },
-    {
-      dataField: "StorageName",
-      caption: t("StorageName"),
-      allowFiltering: false,
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-      validationRules: [
-        {
-          type: "required",
+          newData.StorageCode = value;
         },
-      ],
-    },
-    {
-      dataField: "DealerCode",
-      caption: t("DealerCode"),
-      allowFiltering: false,
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      editorOptions: {
-        dataSource: listDealer?.DataList || [],
-        displayExpr: "DealerCode",
-        valueExpr: "DealerCode",
       },
-      setCellValue: (newData: any, value: any, currentRowData: any) => {
-        if (value !== undefined && value !== null) {
-          const data = listDealer?.DataList ?? [];
-          const itemFind = data.find(
-            (item: Partial<Mst_Dealer>) => item.DealerCode === value
-          );
-          if (itemFind) {
-            newData.DealerName = itemFind.DealerName;
-          } else {
-            newData.DealerName = "";
+      {
+        dataField: "StorageName",
+        caption: t("StorageName"),
+        allowFiltering: false,
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+        },
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "DealerCode",
+        caption: t("DealerCode"),
+        allowFiltering: false,
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listDealer?.DataList || [],
+          displayExpr: "DealerCode",
+          valueExpr: "DealerCode",
+        },
+        setCellValue: (newData: any, value: any, currentRowData: any) => {
+          if (value !== undefined && value !== null) {
+            const data = listDealer?.DataList ?? [];
+            const itemFind = data.find(
+              (item: Partial<Mst_Dealer>) => item.DealerCode === value
+            );
+            if (itemFind) {
+              newData.DealerName = itemFind.DealerName;
+            } else {
+              newData.DealerName = "";
+            }
           }
-        }
-        newData.DealerCode = value;
-      },
-    },
-    {
-      dataField: "DealerName",
-      allowFiltering: false,
-      caption: t("DealerName"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-      validationRules: [
-        {
-          type: "required",
+          newData.DealerCode = value;
         },
-      ],
-    },
-    {
-      dataField: "DelayTransport",
-      caption: t("DelayTransport"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("Flag Active"),
-      allowFiltering: false,
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 135,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
       },
-    },
-  ];
+      {
+        dataField: "DealerName",
+        allowFiltering: false,
+        caption: t("DealerName"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+        },
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "DelayTransport",
+        caption: t("DelayTransport"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "FlagActive",
+        caption: t("Flag Active"),
+        allowFiltering: false,
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 135,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ];
+  }, [listDealer, listStorage]);
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "DealerCode") {
@@ -299,6 +306,10 @@ export const Mst_DelayTransportsPage = () => {
       });
     }
   };
+
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
 
   return (
     <AdminContentLayout>
@@ -328,7 +339,7 @@ export const Mst_DelayTransportsPage = () => {
           inlineEditMode="row"
           keyExpr={["StorageCode", "DealerCode"]}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onSaveRow={handleSave}
           onSelectionChanged={handleSelectionChanged}
           onEditorPreparing={handleEditorPreparing}

@@ -12,18 +12,26 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_RegistrationInfoPage = () => {
   const { t } = useI18n("Mst_RegistrationInfo");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
 
@@ -40,13 +48,11 @@ export const Mst_RegistrationInfoPage = () => {
     {}
   );
 
-  const { data: listProvince } = useQuery(
+  const { data: listProvince, isLoading: isLoadingProvinces } = useQuery(
     ["Provinces"],
     () => api.Mst_Province_GetAllActive(),
     {}
   );
-
-  console.log("listProvince", listProvince);
 
   // api portType
   useEffect(() => {
@@ -60,9 +66,7 @@ export const Mst_RegistrationInfoPage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current?.instance?.addRow();
   };
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_RegistrationInfo_Upload(file);
@@ -142,7 +146,9 @@ export const Mst_RegistrationInfoPage = () => {
     });
     throw new Error(resp.errorCode);
   };
-
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
   const onUpdate = async (
     key: Partial<Mst_RegistrationInfo>,
     data: Partial<Mst_RegistrationInfo>
@@ -161,82 +167,85 @@ export const Mst_RegistrationInfoPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "RegistYear", // Năm
-      caption: t("RegistYear"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "ProvinceCode", // Mã tỉnh
-      caption: t("ProvinceCode"),
-      allowFiltering: false,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listProvince?.DataList ?? [],
-        displayExpr: "ProvinceCode",
-        valueExpr: "ProvinceCode",
+  const columns: ColumnOptions[] = useMemo<any>(
+    () => [
+      {
+        dataField: "RegistYear", // Năm
+        caption: t("RegistYear"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
       },
-      setCellValue: (newValue: any, value: any) => {
-        console.log("newValue ", newValue, "value", value);
-        newValue.ProvinceCode = value;
-        newValue.ProvinceName = value;
-        console.log("newValue ", newValue, "value", value);
-      },
-    },
-    {
-      dataField: "ProvinceName", // Mã tỉnh
-      caption: t("ProvinceName"),
-      allowFiltering: false,
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-        dataSource: listProvince?.DataList ?? [],
-        displayExpr: "ProvinceName",
-        valueExpr: "ProvinceCode",
-      },
-    },
-    {
-      dataField: "Qty", // Số lượng xe Hyundai
-      caption: t("Qty"),
-      allowFiltering: false,
-      editorType: "dxNumberBox",
-      visible: true,
-    },
-    {
-      dataField: "RegistPercent", // Thị phần
-      caption: t("RegistPercent"),
-      allowFiltering: false,
-      editorType: "dxNumberBox",
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "ProvinceCode", // Mã tỉnh
+        caption: t("ProvinceCode"),
+        allowFiltering: false,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorType: "dxSelectBox",
+        visible: true,
+        editorOptions: {
+          dataSource: listProvince?.DataList ?? [],
+          displayExpr: "ProvinceCode",
+          valueExpr: "ProvinceCode",
         },
-      ],
-      visible: true,
-    },
-    {
-      dataField: "TotalAmount", // Tổng dung lượng thị trường
-      caption: t("TotalAmount"),
-      allowFiltering: false,
-      editorType: "dxNumberBox",
-      visible: true,
-    },
-  ];
+        setCellValue: (newValue: any, value: any) => {
+          console.log("newValue ", newValue, "value", value);
+          newValue.ProvinceCode = value;
+          newValue.ProvinceName = value;
+          console.log("newValue ", newValue, "value", value);
+        },
+      },
+      {
+        dataField: "ProvinceName", // Mã tỉnh
+        caption: t("ProvinceName"),
+        allowFiltering: false,
+        editorType: "dxSelectBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+          dataSource: listProvince?.DataList ?? [],
+          displayExpr: "ProvinceName",
+          valueExpr: "ProvinceCode",
+        },
+      },
+      {
+        dataField: "Qty", // Số lượng xe Hyundai
+        caption: t("Qty"),
+        allowFiltering: false,
+        editorType: "dxNumberBox",
+        visible: true,
+      },
+      {
+        dataField: "RegistPercent", // Thị phần
+        caption: t("RegistPercent"),
+        allowFiltering: false,
+        editorType: "dxNumberBox",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        visible: true,
+      },
+      {
+        dataField: "TotalAmount", // Tổng dung lượng thị trường
+        caption: t("TotalAmount"),
+        allowFiltering: false,
+        editorType: "dxNumberBox",
+        visible: true,
+      },
+    ],
+    [listProvince]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     // console.log("e ", e);
@@ -279,14 +288,14 @@ export const Mst_RegistrationInfoPage = () => {
       </AdminContentLayout.Slot>
       <AdminContentLayout.Slot name="Content">
         <BaseGridView
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingProvinces}
           defaultPageSize={config.PAGE_SIZE}
           dataSource={data?.DataList ?? []}
           columns={columns}
           keyExpr={["RegistYear", "ProvinceCode"]}
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

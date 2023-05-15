@@ -12,21 +12,26 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
-import {
-  keywordAtom,
-  selectedItemsAtom,
-} from "../components/screen-atom";
+import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_CustomerBasePage = () => {
   const { t } = useI18n("Mst_CustomerBase");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
 
@@ -43,6 +48,11 @@ export const Mst_CustomerBasePage = () => {
     {}
   );
 
+  // new
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
+
   // api portType
   useEffect(() => {
     if (!!data && !data.isSuccess) {
@@ -55,9 +65,7 @@ export const Mst_CustomerBasePage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current._instance.addRow();
   };
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_CustomerBase_Upload(file);
@@ -211,7 +219,6 @@ export const Mst_CustomerBasePage = () => {
     }
   };
 
-  
   const handleDeleteRows = async (rows: string[]) => {
     const resp = await api.Mst_CustomerBase_DeleteMultiple(rows);
     if (resp.isSuccess) {
@@ -251,7 +258,7 @@ export const Mst_CustomerBasePage = () => {
           keyExpr="CustomerBaseCode"
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

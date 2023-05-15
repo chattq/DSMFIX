@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef} from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useI18n } from "@/i18n/useI18n";
 import { useClientgateApi } from "@/packages/api";
@@ -17,17 +17,19 @@ import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import "./province-management.scss";
-import {filterByFlagActive, uniqueFilterByDataField} from "@packages/common";
-import {ExcludeSpecialCharactersType, requiredType} from "@packages/common/Validation_Rules";
-import {ProvinceDto} from "@packages/api/clientgate/Mst_ProvinceApi";
-import {DataGrid} from "devextreme-react";
-
+import { filterByFlagActive, uniqueFilterByDataField } from "@packages/common";
+import {
+  ExcludeSpecialCharactersType,
+  requiredType,
+} from "@packages/common/Validation_Rules";
+import { ProvinceDto } from "@packages/api/clientgate/Mst_ProvinceApi";
+import { DataGrid } from "devextreme-react";
 
 export const ProvinceManagementPage = () => {
   const { t } = useI18n("Province");
   const api = useClientgateApi();
   const config = useConfiguration();
-  let gridRef: any = useRef<DataGrid|null>(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
 
   const showError = useSetAtom(showErrorAtom);
@@ -54,17 +56,19 @@ export const ProvinceManagementPage = () => {
     }
   }, [data]);
 
-  const { data: areasData, isLoading: isLoadingArea } = useQuery(["areas"], () =>
-    api.Mst_Area_Search({
-      KeyWord: "",
-      FlagActive: FlagActiveEnum.All,
-      Ft_PageIndex: 0,
-      Ft_PageSize: config.MAX_PAGE_ITEMS,
-    } as SearchParam)
+  const { data: areasData, isLoading: isLoadingArea } = useQuery(
+    ["areas"],
+    () =>
+      api.Mst_Area_Search({
+        KeyWord: "",
+        FlagActive: FlagActiveEnum.All,
+        Ft_PageIndex: 0,
+        Ft_PageSize: config.MAX_PAGE_ITEMS,
+      } as SearchParam)
   );
 
   const onCreate = async (data: Partial<ProvinceDto>) => {
-    logger.debug('onCreate', data)
+    logger.debug("onCreate", data);
     const resp = await api.Mst_Province_Create({
       ...data,
     });
@@ -109,92 +113,96 @@ export const ProvinceManagementPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = useMemo(() => [
-    {
-      dataField: "ProvinceCode",
-      caption: t("Province Code"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-        placeholder: t("Input"),
-        validationMessageMode: "always",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "ProvinceCode",
+        caption: t("Province Code"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+          placeholder: t("Input"),
+          validationMessageMode: "always",
+        },
+        headerFilter: {
+          allowSearch: true,
+          dataSource: uniqueFilterByDataField(data?.DataList, "ProvinceCode"),
+        },
+        validationRules: [requiredType, ExcludeSpecialCharactersType],
       },
-      headerFilter: {
-        allowSearch: true,
-        dataSource: uniqueFilterByDataField(data?.DataList, 'ProvinceCode')
+      {
+        dataField: "AreaCode",
+        caption: t("Area Code"),
+        editorType: "dxSelectBox",
+        visible: true,
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList,
+            "AreaCode",
+            t("( Empty )")
+          ),
+        },
+        validationRules: [requiredType],
+        editorOptions: {
+          dataSource: areasData?.DataList ?? [],
+          validationMessageMode: "always",
+          displayExpr: "AreaCode",
+          valueExpr: "AreaCode",
+          searchEnabled: true,
+        },
       },
-      validationRules: [
-        requiredType,
-        ExcludeSpecialCharactersType
-      ],
-    },
-    {
-      dataField: "AreaCode",
-      caption: t("Area Code"),
-      editorType: "dxSelectBox",
-      visible: true,
-      headerFilter: {
-        dataSource: uniqueFilterByDataField(data?.DataList, 'AreaCode', t('( Empty )')),
+      {
+        dataField: "ProvinceName",
+        caption: t("Province Name"),
+        defaultSortOrder: "asc",
+        editorType: "dxTextBox",
+        visible: true,
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList,
+            "ProvinceName",
+            t("( Empty )")
+          ),
+        },
+        editorOptions: {
+          placeholder: t("Input"),
+          validationMessageMode: "always",
+        },
+        validationRules: [requiredType],
       },
-      validationRules: [
-        requiredType,
-      ],
-      editorOptions: {
-        dataSource: areasData?.DataList ?? [],
-        validationMessageMode: "always",
-        displayExpr: "AreaCode",
-        valueExpr: "AreaCode",
-        searchEnabled: true
+      {
+        dataField: "FlagActive",
+        caption: t("Flag Active"),
+        editorType: "dxSwitch",
+        dataType: "boolean",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+        headerFilter: {
+          dataSource: filterByFlagActive(data?.DataList, {
+            true: t("Active"),
+            false: t("Inactive"),
+          }),
+        },
       },
-    },
-    {
-      dataField: "ProvinceName",
-      caption: t("Province Name"),
-      defaultSortOrder: "asc",
-      editorType: "dxTextBox",
-      visible: true,
-      headerFilter: {
-        dataSource: uniqueFilterByDataField(data?.DataList, 'ProvinceName', t('( Empty )')),
-      },
-      editorOptions: {
-        placeholder: t("Input"),
-        validationMessageMode: "always",
-      },
-      validationRules: [
-        requiredType
-      ],
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("Flag Active"),
-      editorType: "dxSwitch",
-      dataType: "boolean",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
-      },
-      headerFilter: {
-        dataSource: filterByFlagActive(data?.DataList, {
-          true: t('Active'),
-          false: t('Inactive'),
-        })
-      },
-    },
-  ], [areasData]);
+    ],
+    [areasData]
+  );
 
   const handleAddNew = () => {
-    console.log('gridRef:', gridRef)
-    gridRef.current.instance.addRow()
+    console.log("gridRef:", gridRef);
+    gridRef.current.instance.addRow();
   };
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "ProvinceCode") {
       e.editorOptions.readOnly = !e.row?.isNewRow;
     } else if (e.dataField === "FlagActive") {
-      if(e.row?.isNewRow) {
+      if (e.row?.isNewRow) {
         e.editorOptions.value = true;
       }
     }
@@ -223,13 +231,13 @@ export const ProvinceManagementPage = () => {
         const id = e.changes[0].key;
         e.promise = onDelete(id);
       } else if (type === "insert") {
-        let newData: ProvinceDto  = e.changes[0].data!;
+        let newData: ProvinceDto = e.changes[0].data!;
         // if doesn't change flag active. set it as active by default
-        if(!Object.keys(newData).includes('FlagActive')) {
+        if (!Object.keys(newData).includes("FlagActive")) {
           newData = {
             ...newData,
-            FlagActive: true
-          }
+            FlagActive: true,
+          };
         }
         e.promise = onCreate(newData);
       } else if (type === "update") {
@@ -254,6 +262,8 @@ export const ProvinceManagementPage = () => {
     }
   };
   const handleDownloadTemplate = async () => {
+    console.log("log");
+
     const resp = await api.Mst_Provice_ExportTemplate();
     if (resp.isSuccess) {
       toast.success(t("DownloadSuccessfully"));
@@ -270,17 +280,14 @@ export const ProvinceManagementPage = () => {
     setSelectedItems(rowKeys);
   };
   const handleGridReady = useCallback((grid: any) => {
-    console.log('grid:', grid)
-    gridRef.current = grid
-  }, [])
+    gridRef.current = grid;
+  }, []);
   return (
     <AdminContentLayout className={"province-management"}>
       <AdminContentLayout.Slot name={"Header"}>
         <PageHeaderLayout>
           <PageHeaderLayout.Slot name={"Before"}>
-            <div className="font-bold dx-font-m">
-              {t("ProvinceManagement")}
-            </div>
+            <div className="font-bold dx-font-m">{t("ProvinceManagement")}</div>
           </PageHeaderLayout.Slot>
           <PageHeaderLayout.Slot name={"Center"}>
             <HeaderPart
@@ -292,7 +299,6 @@ export const ProvinceManagementPage = () => {
         </PageHeaderLayout>
       </AdminContentLayout.Slot>
       <AdminContentLayout.Slot name={"Content"}>
-        
         <BaseGridView
           isLoading={isLoading || isLoadingArea}
           defaultPageSize={config.PAGE_SIZE}

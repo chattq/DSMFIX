@@ -8,21 +8,21 @@ import { FlagActiveEnum, Mst_DealerType, SearchParam } from "@/packages/types";
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { HeaderPart } from "./header-part";
 import { useSetAtom, useAtomValue } from "jotai";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
+import { DataGrid } from "devextreme-react";
 
 export const Mst_DealerTypePage = () => {
   const { t } = useI18n("Mst_DealerType");
   const config = useConfiguration();
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   const api = useClientgateApi();
   const showError = useSetAtom(showErrorAtom);
-  const selectedRowKeys = useRef<string[]>([]);
   const { data, isLoading, refetch } = useQuery(
     ["DealerType", keyword],
     () =>
@@ -109,9 +109,7 @@ export const Mst_DealerTypePage = () => {
   };
 
   const handleAddNew = () => {
-    if (gridRef?.instance) {
-      gridRef.instance.addRow();
-    }
+    gridRef.current?.instance.addRow();
   };
 
   const handleUploadFile = async (file: File, pprogressCallback?: Function) => {
@@ -145,31 +143,33 @@ export const Mst_DealerTypePage = () => {
   const handleSelectionChanged = (rowKeys: string[]) => {
     setSelectedItems(rowKeys);
   };
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "DealerType",
-      caption: t("DealerType"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "DealerTypeName",
-      caption: t("DealerTypeName"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+  const columns: ColumnOptions[] = useMemo(() => {
+    return [
+      {
+        dataField: "DealerType",
+        caption: t("DealerType"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+      },
+      {
+        dataField: "DealerTypeName",
+        caption: t("DealerTypeName"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ];
+  } , []);
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "DealerType") {
@@ -190,6 +190,10 @@ export const Mst_DealerTypePage = () => {
       });
     }
   };
+
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
 
   return (
     <AdminContentLayout>
@@ -217,7 +221,7 @@ export const Mst_DealerTypePage = () => {
           inlineEditMode="row"
           keyExpr="DealerType"
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onSaveRow={handleSave}
           onSelectionChanged={handleSelectionChanged}
           onEditorPreparing={handleEditorPreparing}

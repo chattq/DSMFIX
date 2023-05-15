@@ -768,3 +768,60 @@ export interface Mst_RateApprOrderModelMax {
   md_DealerName: string;
   mcm_ModelName: string;
 }
+
+export interface Mst_CarPrice {
+  SOType: string;
+  SpecCode: string;
+  SpecDescription: string;
+  EffectiveDate: string;
+  UnitPrice: string;
+  LogLUDateTime: string;
+  LogLUBy: string;
+}
+
+export interface SearchCarPriceParam {
+  KeyWord: string;
+  FlagActive: FlagActiveEnum;
+  Ft_PageSize: number;
+  Ft_PageIndex: number;
+  SOType: string;
+  SpecCode: string;
+}
+
+export interface Mst_BankDealer {
+  DealerCode: string;
+  BankCode: string;
+  Remark: string;
+  FlagBankGrt: string;
+  FlagActive: string;
+  FlagBankPmt: string,
+  LogLUDateTime: string;
+  LogLUBy: string;
+}
+
+export interface SearchBankDealerParam {
+  BankCode:string,
+  DealerCode: string,
+  KeyWord: string;
+  FlagActive: FlagActiveEnum;
+  Ft_PageSize: number;
+  Ft_PageIndex: number;
+}
+
+export interface Mst_Department {
+  DepartmentCode: string;
+  DepartmentName: string;
+  DepartmentDesc: string;
+  FlagActive: string;
+  LogLUDateTime: string;
+  LogLUBy: string;
+}
+
+export interface Mst_Qualification {
+  QualificationCode: string;
+  QualificationName: string;
+  Remark: string;
+  FlagActive: string;
+  LogLUDateTime: string;
+  LogLUBy: string;
+}

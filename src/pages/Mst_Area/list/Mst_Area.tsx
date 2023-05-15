@@ -9,7 +9,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/Mst_AreaStore";
 import { HeaderPart } from "../components/header-part";
@@ -145,42 +145,45 @@ export const Mst_AreaPage = () => {
   const handleSelectionChanged = (rowKeys: string[]) => {
     setSelectedItems(rowKeys);
   };
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "AreaCode",
-      caption: t("AreaCode"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "AreaRootCode",
-      caption: t("AreaRootCode"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "AreaName",
-      caption: t("AreaName"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "AreaCode",
+        caption: t("AreaCode"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+      },
+      {
+        dataField: "AreaRootCode",
+        caption: t("AreaRootCode"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "AreaName",
+        caption: t("AreaName"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "AreaCode" || e.dataField === "AreaRootCode") {

@@ -14,7 +14,7 @@ export const Header = ({onCollapse, onToggleSettings}: HeaderProps) => {
         <span className={'ml-2 text-primary'}>{t('Search')}</span>
       </div>
       <div className={'flex-end ml-auto'} >
-        <Button icon={'/images/icons/settings.svg'} onClick={onToggleSettings}/>
+        <Button icon={'/images/icons/settings.svg'} id={'toggle-search-settings'} onClick={onToggleSettings}/>
         <Button icon={'/images/icons/collapse-left.svg'} onClick={onCollapse} />
       </div>
     </div>

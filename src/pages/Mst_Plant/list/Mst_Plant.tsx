@@ -9,7 +9,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 
 import { keywordAtom, selectedItemsAtom } from "../components/Mst_PlantStore";
@@ -145,32 +145,35 @@ export const Mst_PlantPage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "PlantCode",
-      caption: t("PlantCode"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "PlantName",
-      caption: t("PlantName"),
-      editorType: "dxTextBox",
-      visible: true,
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "PlantCode",
+        caption: t("PlantCode"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+      },
+      {
+        dataField: "PlantName",
+        caption: t("PlantName"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "PlantCode") {

@@ -13,7 +13,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -30,6 +30,7 @@ export const Auto_MapVIN_StorageRatePage = () => {
   const api = useClientgateApi();
   const showError = useSetAtom(showErrorAtom);
   const selectedRowKeys = useRef<string[]>([]);
+
   const { data, isLoading, refetch } = useQuery(
     ["Auto_MapVIN_StorageRate", keyword],
     () =>
@@ -169,188 +170,191 @@ export const Auto_MapVIN_StorageRatePage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "StorageCode",
-      caption: t("StorageCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listStorage?.DataList ?? [],
-        displayExpr: "StorageCode",
-        valueExpr: "StorageCode",
-      },
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "StorageCode",
+        caption: t("StorageCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        editorOptions: {
+          dataSource: listStorage?.DataList ?? [],
+          displayExpr: "StorageCode",
+          valueExpr: "StorageCode",
         },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "ModelCode",
-      caption: t("ModelCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      lookup: {
-        dataSource: listModel?.DataList ?? [],
-        displayExpr: "ModelCode",
-        valueExpr: "ModelCode",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
       },
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "ModelCode",
+        caption: t("ModelCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        lookup: {
+          dataSource: listModel?.DataList ?? [],
+          displayExpr: "ModelCode",
+          valueExpr: "ModelCode",
         },
-      ],
-      allowFiltering: true,
-      setCellValue: (newData: any, value: any) => {
-        newData.ModelCode = value;
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+        setCellValue: (newData: any, value: any) => {
+          newData.ModelCode = value;
 
-        const model = listModel?.DataList?.find(
-          (item: any) => item.ModelCode == value
-        );
+          const model = listModel?.DataList?.find(
+            (item: any) => item.ModelCode == value
+          );
 
-        newData.ModelName = model?.ModelName;
+          newData.ModelName = model?.ModelName;
 
-        newData.SpecCode = null;
-        newData.SpecDescription = null;
+          newData.SpecCode = null;
+          newData.SpecDescription = null;
 
-        newData.ColorExtCode = null;
-        newData.ColorExtNameVN = null;
-      },
-    },
-    {
-      dataField: "ModelName",
-      caption: t("ModelName"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-      allowFiltering: true,
-    },
-    {
-      dataField: "SpecCode",
-      caption: t("SpecCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+          newData.ColorExtCode = null;
+          newData.ColorExtNameVN = null;
         },
-      ],
-      lookup: {
-        dataSource: (options: any) => {
-          return {
-            store: listSpec?.DataList,
-            filter: options.data
-              ? ["ModelCode", "=", options.data.ModelCode]
-              : null,
-          };
-        },
-        displayExpr: "SpecCode",
-        valueExpr: "SpecCode",
       },
-      allowFiltering: true,
-      setCellValue: (newData: any, value: any) => {
-        newData.SpecCode = value;
-
-        const carSpec = listSpec?.DataList?.find(
-          (item: any) => item.SpecCode == value
-        );
-
-        newData.SpecDescription = carSpec?.SpecDescription;
-      },
-    },
-    {
-      dataField: "SpecDescription",
-      caption: t("SpecDescription"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-      allowFiltering: true,
-    },
-
-    {
-      dataField: "ColorExtCode",
-      caption: t("ColorExtCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      lookup: {
-        dataSource: (options: any) => {
-          return {
-            store: listColor?.DataList,
-            filter: options.data
-              ? ["ModelCode", "=", options.data.ModelCode]
-              : null,
-          };
+      {
+        dataField: "ModelName",
+        caption: t("ModelName"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
         },
-        displayExpr: "ColorExtCode",
-        valueExpr: "ColorExtCode",
+        allowFiltering: true,
       },
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "SpecCode",
+        caption: t("SpecCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        lookup: {
+          dataSource: (options: any) => {
+            return {
+              store: listSpec?.DataList,
+              filter: options.data
+                ? ["ModelCode", "=", options.data.ModelCode]
+                : null,
+            };
+          },
+          displayExpr: "SpecCode",
+          valueExpr: "SpecCode",
         },
-      ],
-      allowFiltering: true,
-      setCellValue: (newData: any, value: any) => {
-        newData.ColorExtCode = value;
+        allowFiltering: true,
+        setCellValue: (newData: any, value: any) => {
+          newData.SpecCode = value;
 
-        const color = listColor?.DataList?.find(
-          (item: any) => item.ColorExtCode == value
-        );
+          const carSpec = listSpec?.DataList?.find(
+            (item: any) => item.SpecCode == value
+          );
 
-        newData.ColorExtNameVN = color?.ColorExtName;
+          newData.SpecDescription = carSpec?.SpecDescription;
+        },
       },
-    },
-    {
-      dataField: "ColorExtNameVN",
-      caption: t("ColorExtNameVN"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
+      {
+        dataField: "SpecDescription",
+        caption: t("SpecDescription"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+        },
+        allowFiltering: true,
       },
-      allowFiltering: true,
-    },
 
-    {
-      dataField: "MBVal",
-      caption: t("MBVal"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "ColorExtCode",
+        caption: t("ColorExtCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        lookup: {
+          dataSource: (options: any) => {
+            return {
+              store: listColor?.DataList,
+              filter: options.data
+                ? ["ModelCode", "=", options.data.ModelCode]
+                : null,
+            };
+          },
+          displayExpr: "ColorExtCode",
+          valueExpr: "ColorExtCode",
         },
-      ],
-    },
-    {
-      dataField: "MTVal",
-      caption: t("MTVal"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+        setCellValue: (newData: any, value: any) => {
+          newData.ColorExtCode = value;
+
+          const color = listColor?.DataList?.find(
+            (item: any) => item.ColorExtCode == value
+          );
+
+          newData.ColorExtNameVN = color?.ColorExtName;
         },
-      ],
-    },
-    {
-      dataField: "MNVal",
-      caption: t("MNVal"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+      },
+      {
+        dataField: "ColorExtNameVN",
+        caption: t("ColorExtNameVN"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
         },
-      ],
-    },
-  ];
+        allowFiltering: true,
+      },
+
+      {
+        dataField: "MBVal",
+        caption: t("MBVal"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "MTVal",
+        caption: t("MTVal"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "MNVal",
+        caption: t("MNVal"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    [listColor, listStorage, listModel, data]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (

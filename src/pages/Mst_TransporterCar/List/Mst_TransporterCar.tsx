@@ -12,21 +12,19 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
-import {
-  keywordAtom,
-  selecteItemsAtom,
-} from "../components/screen-atom";
+import { keywordAtom, selecteItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_TransporterCarPage = () => {
   const { t } = useI18n("Mst_TransporterCar");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selecteItemsAtom);
 
@@ -48,8 +46,6 @@ export const Mst_TransporterCarPage = () => {
     () => api.Mst_Transporter_GetAllActive(),
     {}
   );
-  console.log("listTransporterCar ", listTransporterCar);
-
   // api portType
   useEffect(() => {
     if (!!data && !data.isSuccess) {
@@ -66,6 +62,7 @@ export const Mst_TransporterCarPage = () => {
       gridRef._instance.addRow();
     }
   };
+
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_TransporterCar_Upload(file);
     if (resp.isSuccess) {
@@ -166,50 +163,52 @@ export const Mst_TransporterCarPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "TransporterCode", // mã cảng
-      caption: t("TransporterCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        placeholder: t("Select"),
-        dataSource: listTransporterCar?.DataList ?? [],
-        displayExpr: "TransporterCode",
-        valueExpr: "TransporterCode",
-      },
-    },
-    {
-      dataField: "PlateNo", // loại cảng
-      caption: t("PlateNo"),
-      editorType: "dxTextBox",
-      visible: true,
-      allowFiltering: false,
-      editorOptions: {
-        placeholder: t("Input"),
-      },
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(() => {
+    return [
+      {
+        dataField: "TransporterCode", // mã cảng
+        caption: t("TransporterCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        editorOptions: {
+          placeholder: t("Select"),
+          dataSource: listTransporterCar?.DataList ?? [],
+          displayExpr: "TransporterCode",
+          valueExpr: "TransporterCode",
         },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
-        },
-      ],
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("Flag Active"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
       },
-    },
-  ];
+      {
+        dataField: "PlateNo", // loại cảng
+        caption: t("PlateNo"),
+        editorType: "dxTextBox",
+        visible: true,
+        allowFiltering: false,
+        editorOptions: {
+          placeholder: t("Input"),
+        },
+        validationRules: [
+          {
+            type: "required",
+          },
+          {
+            type: "pattern",
+            pattern: /[a-zA-Z0-9]/,
+          },
+        ],
+      },
+      {
+        dataField: "FlagActive",
+        caption: t("Flag Active"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ];
+  }, [listTransporterCar]);
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "TransporterCode") {
@@ -234,7 +233,10 @@ export const Mst_TransporterCarPage = () => {
     });
     throw new Error(resp.errorCode);
   };
-
+  const handleGridReady = useCallback((grid: any) => {
+    console.log("grid:", grid);
+    gridRef.current = grid;
+  }, []);
   return (
     <AdminContentLayout>
       <AdminContentLayout.Slot name="Header">
@@ -260,7 +262,7 @@ export const Mst_TransporterCarPage = () => {
           keyExpr={["PlateNo", "TransporterCode"]}
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

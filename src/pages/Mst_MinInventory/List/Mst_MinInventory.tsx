@@ -12,18 +12,26 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_MinInventoryPage = () => {
   const { t } = useI18n("Mst_MinInventory");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   // call api posttyle search
@@ -39,15 +47,19 @@ export const Mst_MinInventoryPage = () => {
     {}
   );
 
-  const { data: listModal } = useQuery(["Model"], () => {
-    return api.Mst_CarModel_GetAllActive();
-  });
+  const { data: listModal, isLoading: isLoadingModel } = useQuery(
+    ["Model"],
+    () => {
+      return api.Mst_CarModel_GetAllActive();
+    }
+  );
 
-  const { data: listSpec } = useQuery(["Spec"], () => {
-    return api.Mst_CarSpec_GetAllActive();
-  });
-
-  console.log("listSpec", listSpec, "listModel", listModal);
+  const { data: listSpec, isLoading: isLoadingSpec } = useQuery(
+    ["Spec"],
+    () => {
+      return api.Mst_CarSpec_GetAllActive();
+    }
+  );
 
   // api portType
   useEffect(() => {
@@ -61,9 +73,7 @@ export const Mst_MinInventoryPage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current?.instance?.addRow();
   };
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_MinInventory_Upload(file);
@@ -160,120 +170,123 @@ export const Mst_MinInventoryPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "ModelCode", // Số hợp đồng
-      caption: t("ModelCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      lookup: {
-        dataSource: listModal?.DataList ?? [],
-        displayExpr: "ModelCode",
-        valueExpr: "ModelCode",
-      },
-      editorOptions: {},
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo<any>(
+    () => [
+      {
+        dataField: "ModelCode", // Số hợp đồng
+        caption: t("ModelCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        lookup: {
+          dataSource: listModal?.DataList ?? [],
+          displayExpr: "ModelCode",
+          valueExpr: "ModelCode",
         },
-      ],
-      setCellValue: (newData: any, value: any) => {
-        newData.ModelCode = value;
-        const data = listModal?.DataList ?? [];
-        const dataValue = data.find((item) => {
-          return item.ModelCode === value;
-        });
-        if (dataValue) {
-          newData.ModelName = dataValue.ModelName;
-        }
-        newData.SpecCode = "";
-        newData.SpecDescription = "";
-      },
-    },
-    {
-      dataField: "ModelName", // Tỉ lệ bảo hiểm
-      caption: t("ModelName"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-    },
-    {
-      dataField: "SpecCode", // Mã spec
-      caption: t("SpecCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      lookup: {
-        dataSource: (options: any) => {
-          console.log("object spec ", {
-            store: listSpec?.DataList ?? [],
-            filter: options.data?.ModelCode
-              ? ["ModelCode", "=", options.data?.ModelCode]
-              : null,
+        editorOptions: {},
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        setCellValue: (newData: any, value: any) => {
+          newData.ModelCode = value;
+          const data = listModal?.DataList ?? [];
+          const dataValue = data.find((item) => {
+            return item.ModelCode === value;
           });
+          if (dataValue) {
+            newData.ModelName = dataValue.ModelName;
+          }
+          newData.SpecCode = "";
+          newData.SpecDescription = "";
+        },
+      },
+      {
+        dataField: "ModelName", // Tỉ lệ bảo hiểm
+        caption: t("ModelName"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+        },
+      },
+      {
+        dataField: "SpecCode", // Mã spec
+        caption: t("SpecCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        lookup: {
+          dataSource: (options: any) => {
+            console.log("object spec ", {
+              store: listSpec?.DataList ?? [],
+              filter: options.data?.ModelCode
+                ? ["ModelCode", "=", options.data?.ModelCode]
+                : null,
+            });
 
-          return {
-            store: listSpec?.DataList ?? [],
-            filter: options.data?.ModelCode
-              ? ["ModelCode", "=", options.data?.ModelCode]
-              : null,
-          };
+            return {
+              store: listSpec?.DataList ?? [],
+              filter: options.data?.ModelCode
+                ? ["ModelCode", "=", options.data?.ModelCode]
+                : null,
+            };
+          },
+          displayExpr: "SpecCode",
+          valueExpr: "SpecCode",
         },
-        displayExpr: "SpecCode",
-        valueExpr: "SpecCode",
-      },
-      editorOptions: {
-        // valueExpr: "SpecCode",
-      },
-      validationRules: [
-        {
-          type: "required",
+        editorOptions: {
+          // valueExpr: "SpecCode",
         },
-      ],
-      setCellValue: (newValue: any, value: any) => {
-        newValue.SpecCode = value;
-        const data = listSpec?.DataList ?? [];
-        const dataValue = data.find((item) => {
-          return item.SpecCode === value;
-        });
-        if (dataValue) {
-          newValue.SpecDescription = dataValue.SpecDescription;
-        }
-      },
-    },
-    {
-      dataField: "SpecDescription", // Tỉ lệ bảo hiểm
-      caption: t("SpecDescription"),
-      editorType: "dxTextBox",
-      visible: true,
-      editorOptions: {
-        readOnly: true,
-      },
-    },
-    {
-      dataField: "QtyInv", // Tồn kho tối thiểu
-      caption: t("QtyInv"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        setCellValue: (newValue: any, value: any) => {
+          newValue.SpecCode = value;
+          const data = listSpec?.DataList ?? [];
+          const dataValue = data.find((item) => {
+            return item.SpecCode === value;
+          });
+          if (dataValue) {
+            newValue.SpecDescription = dataValue.SpecDescription;
+          }
         },
-      ],
-    },
-    {
-      dataField: "FlagActive", // Trạng thái
-      caption: t("Flag Active"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
       },
-    },
-  ];
+      {
+        dataField: "SpecDescription", // Tỉ lệ bảo hiểm
+        caption: t("SpecDescription"),
+        editorType: "dxTextBox",
+        visible: true,
+        editorOptions: {
+          readOnly: true,
+        },
+      },
+      {
+        dataField: "QtyInv", // Tồn kho tối thiểu
+        caption: t("QtyInv"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "FlagActive", // Trạng thái
+        caption: t("Flag Active"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ],
+    [listModal, listSpec]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "ModelCode" || e.dataField === "SpecCode") {
@@ -299,7 +312,9 @@ export const Mst_MinInventoryPage = () => {
       });
     }
   };
-
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
   return (
     <AdminContentLayout>
       <AdminContentLayout.Slot name="Header">
@@ -318,14 +333,14 @@ export const Mst_MinInventoryPage = () => {
       </AdminContentLayout.Slot>
       <AdminContentLayout.Slot name="Content">
         <BaseGridView
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingModel || isLoadingSpec}
           defaultPageSize={config.PAGE_SIZE}
           dataSource={data?.DataList ?? []}
           columns={columns}
           keyExpr={["ModelCode", "SpecCode"]}
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

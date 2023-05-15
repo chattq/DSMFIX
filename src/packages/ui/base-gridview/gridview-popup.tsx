@@ -94,7 +94,7 @@ const GridViewRaw = ({
 
   const [visible, setVisible] = useState(false);
 
-  const {saveState, loadState} = useSavedState({storeKey})
+  const {saveState, loadState} = useSavedState<ColumnOptions[]>({storeKey})
   
   const [realColumns, setColumnsState] = useReducer(
     (state: any, changes: any) => {

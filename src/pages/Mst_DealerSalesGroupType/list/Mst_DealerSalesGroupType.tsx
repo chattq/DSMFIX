@@ -14,7 +14,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -33,7 +33,7 @@ export const Mst_DealerSalesGroupTypePage = () => {
   const keyword = useAtomValue(keywordAtom);
 
   const { data, isLoading, refetch } = useQuery(
-    ["CarCancelType", keyword],
+    ["dealerSalesGroupType", keyword],
     () =>
       api.Mst_DealerSalesGroupType_Search({
         KeyWord: keyword,
@@ -155,32 +155,35 @@ export const Mst_DealerSalesGroupTypePage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "SalesGroupType",
-      caption: t("SalesGroupType"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "SalesGroupTypeName",
-      caption: t("SalesGroupTypeName"),
-      editorType: "dxTextBox",
-      visible: true,
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "SalesGroupType",
+        caption: t("SalesGroupType"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+      },
+      {
+        dataField: "SalesGroupTypeName",
+        caption: t("SalesGroupTypeName"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "SalesGroupType") {

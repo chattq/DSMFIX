@@ -7,7 +7,7 @@ import {
   Mst_AmplitudeApprOrdPage,
   Mst_CabinCertificatePage,
   Mst_CostTypePage,
-  Mst_CustomerBasePage,
+  Mst_CustomerBasePage, //
   Mst_DealerTypePage,
   Mst_DelayTransportsPage,
   Mst_DistrictPage,
@@ -32,18 +32,22 @@ import {
 import { Auto_MapVIN_StorageRatePage } from "@/pages/Auto_MapVIN_StorageRate/List/Auto_MapVIN_StorageRate";
 import { Dlr_StorageLocalPage } from "@/pages/Dlr_StorageLocal/list/Dlr_StorageLocal";
 import { Mst_AreaPage } from "@/pages/Mst_Area/list/Mst_Area";
+// import { Mst_BankDealer_Page } from "@/pages/Mst_BankDealer/list/Mst_BankDealer";
 import { Mst_CarCancelTypePage } from "@/pages/Mst_CarCancelType/list/Mst_CarCancelType";
 import { Mst_CarInvoicePage } from "@/pages/Mst_CarInvoice/list/Mst_CarInvoice";
 import { Mst_CarModelPage } from "@/pages/Mst_CarModel/list/Mst_CarModel";
 import { Mst_CarOCNPage } from "@/pages/Mst_CarOCN/list/Mst_CarOCN";
+// import { Mst_CarPrice_Page } from "@/pages/Mst_CarPrice/list/Mst_CarPrice";
 import { Mst_CarSpecPage } from "@/pages/Mst_CarSpec";
 import { Mst_CarStdOptPage } from "@/pages/Mst_CarStdOpt/list/Mst_CarStdOpt";
 import { Mst_ContractUpdateTypePage } from "@/pages/Mst_ContractUpdateType/list/Mst_ContractUpdateType";
 import { Mst_DealerSalesGroupTypePage } from "@/pages/Mst_DealerSalesGroupType/list/Mst_DealerSalesGroupType";
 import { Mst_DealerSalesTypePage } from "@/pages/Mst_DealerSalesType/list/Mst_DealerSalesType";
+// import { Mst_Department_Page } from "@/pages/Mst_Department/list/Mst_Department";
 import { Mst_DiscountPage } from "@/pages/Mst_Discount/list/Mst_Discount";
 import { Mst_PaymentTypePage } from "@/pages/Mst_PaymentType/list/Mst_PaymentType";
 import { Mst_PlantPage } from "@/pages/Mst_Plant/list/Mst_Plant";
+// import { Mst_Qualification_Page } from "@/pages/Mst_Qualification/list/Mst_Qualification";
 import { Mst_RateApprOrderModelMaxPage } from "@/pages/Mst_RateApprOrderModelMax";
 import { Mst_SalesOrderTypePage } from "@/pages/Mst_SalesOrderType/list/Mst_SalesOrderType";
 import { Mst_StoragePage } from "@/pages/Mst_Storage/list/Mst_Storage";
@@ -426,4 +430,32 @@ export const adminRoutes: RouteItem[] = [
     mainMenuKey: "admin", // Key của menu cha
     getPageElement: () => <Mst_PointRegisManagementPage />,
   },
+  // {
+  //   key: "Mst_CarPrice", // Quản lý giá xe
+  //   path: "admin/Mst_CarPrice",
+  //   subMenuTitle: "Mst_CarPrice",
+  //   mainMenuKey: "admin",
+  //   getPageElement: () => <Mst_CarPrice_Page />,
+  // },
+  // {
+  //   key: "Mst_BankDealer", // Quản lý ngân hàng đại lý
+  //   path: "admin/Mst_BankDealer",
+  //   subMenuTitle: "Mst_BankDealer",
+  //   mainMenuKey: "admin",
+  //   getPageElement: () => <Mst_BankDealer_Page />,
+  // },
+  // {
+  //   key: "Mst_Department", // Quản lý phòng ban
+  //   path: "admin/Mst_Department",
+  //   subMenuTitle: "Mst_Department",
+  //   mainMenuKey: "admin",
+  //   getPageElement: () => <Mst_Department_Page />,
+  // },
+  // {
+  //   key: "Mst_Qualification", // Quản lý trình độ chuyên môn
+  //   path: "admin/Mst_Qualification",
+  //   subMenuTitle: "Mst_Qualification",
+  //   mainMenuKey: "admin",
+  //   getPageElement: () => <Mst_Qualification_Page />,
+  // },
 ];

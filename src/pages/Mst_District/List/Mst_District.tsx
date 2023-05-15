@@ -17,10 +17,17 @@ import { StatusButton } from "@/packages/ui/status-button";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
+import { DataGrid } from "devextreme-react";
 
 export const Mst_DistrictPage = () => {
   const api = useClientgateApi();
@@ -28,7 +35,7 @@ export const Mst_DistrictPage = () => {
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   const { t } = useI18n("Mst_District");
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const selectedRowKeys = useRef<string[]>([]);
 
   const showError = useSetAtom(showErrorAtom);
@@ -64,9 +71,7 @@ export const Mst_DistrictPage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef.instance) {
-      gridRef.instance.addRow();
-    }
+    gridRef.current?.instance.addRow();
   };
 
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
@@ -97,6 +102,11 @@ export const Mst_DistrictPage = () => {
     throw new Error(resp.errorCode);
   };
 
+  const handleGridReady = useCallback((grid: any) => {
+    console.log("grid:", grid);
+    gridRef.current = grid;
+  }, []);
+
   const flagActiveFilter = useMemo(() => {
     if (data?.isSuccess) {
       return data.DataList?.reduce((acc, cur) => {
@@ -117,68 +127,70 @@ export const Mst_DistrictPage = () => {
     }
   }, [data]);
 
-  const columns: ColumnOptions[] = [
-    {
-      // mã cảng , tên cảng , trạng thái
-      dataField: "DistrictCode",
-      caption: t("DistrictCode"),
-      editorType: "dxTextBox",
-      allowFiltering: true,
-      editorOptions: {
-        placeholder: t("Input"),
+  const columns: ColumnOptions[] = useMemo(() => {
+    return [
+      {
+        // mã cảng , tên cảng , trạng thái
+        dataField: "DistrictCode",
+        caption: t("DistrictCode"),
+        editorType: "dxTextBox",
+        allowFiltering: true,
+        editorOptions: {
+          placeholder: t("Input"),
+        },
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
       },
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      // mã cảng , tên cảng , trạng thái
-      dataField: "ProvinceCode",
-      caption: t("ProvinceCode"),
-      editorType: "dxSelectBox",
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      editorOptions: {
-        placeholder: t("Select"),
+      {
+        // mã cảng , tên cảng , trạng thái
+        dataField: "ProvinceCode",
+        caption: t("ProvinceCode"),
+        editorType: "dxSelectBox",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          placeholder: t("Select"),
 
-        dataSource: listProvince?.DataList ?? [],
-        displayExpr: "ProvinceName",
-        valueExpr: "ProvinceCode",
-      },
-    },
-    {
-      dataField: "DistrictName",
-      caption: t("DistrictName"),
-      editorType: "dxTextBox",
-      editorOptions: {
-        placeholder: t("Input"),
-      },
-      validationRules: [
-        {
-          type: "required",
+          dataSource: listProvince?.DataList ?? [],
+          displayExpr: "ProvinceName",
+          valueExpr: "ProvinceCode",
         },
-      ],
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("Flag Active"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
       },
-      headerFilter: {
-        dataSource: flagActiveFilter,
+      {
+        dataField: "DistrictName",
+        caption: t("DistrictName"),
+        editorType: "dxTextBox",
+        editorOptions: {
+          placeholder: t("Input"),
+        },
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
       },
-    },
-  ];
+      {
+        dataField: "FlagActive",
+        caption: t("Flag Active"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+        headerFilter: {
+          dataSource: flagActiveFilter,
+        },
+      },
+    ];
+  }, []);
 
   const onDelete = async (id: string) => {
     const respone = await api.Mst_District_Delete(id);
@@ -286,7 +298,7 @@ export const Mst_DistrictPage = () => {
           columns={columns}
           keyExpr={["DistrictCode", "ProvinceCode"]}
           onSaveRow={handleSaveRow}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           allowSelection={true}
           allowInlineEdit={true}
           inlineEditMode="row"

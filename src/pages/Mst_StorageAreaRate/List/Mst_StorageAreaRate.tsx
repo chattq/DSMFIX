@@ -79,7 +79,7 @@ export const Mst_StorageAreaRatePage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    gridRef.current?._instance?.addRow();
+    gridRef.current?.instance?.addRow();
   };
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_StorageAreaRate_Upload(file);
@@ -375,12 +375,7 @@ export const Mst_StorageAreaRatePage = () => {
         ],
       },
     ],
-    [
-      isLoadingListStorage,
-      isLoadingListModal,
-      isLoadingListSpe,
-      isLoadingListColor,
-    ]
+    [listStorage, listModal, listSpec, listColor]
   );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {

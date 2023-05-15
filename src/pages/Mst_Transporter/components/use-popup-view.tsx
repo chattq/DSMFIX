@@ -41,7 +41,7 @@ export const usePopupView = ({ formSettings }: UsePopupViewProps) => {
       <Popup
         visible={!!viewingItem.item}
         showTitle={true}
-        title={t("View Dealer")}
+        title={t("View Transporter")}
         toolbarItems={[
           {
             toolbar: "bottom",

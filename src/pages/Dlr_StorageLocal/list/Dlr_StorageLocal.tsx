@@ -14,7 +14,7 @@ import { StatusButton } from "@/packages/ui/status-button";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -156,81 +156,79 @@ export const Dlr_StorageLocalPage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "StorageCode",
-      caption: t("StorageCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "StorageCode",
+        caption: t("StorageCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listStorage?.data?.DataList ?? [],
+          displayExpr: "StorageCode",
+          valueExpr: "StorageCode",
         },
-      ],
-      editorOptions: {
-        dataSource: listStorage?.data?.DataList ?? [],
-        displayExpr: "StorageCode",
-        valueExpr: "StorageCode",
-      },
-      setCellValue: (newData: any, value: any) => {
-        newData.StorageName = value;
-        newData.StorageCode = value;
-      },
-    },
-    {
-      dataField: "StorageName",
-      caption: t("StorageName"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listStorage?.data?.DataList ?? [],
-        displayExpr: "StorageName",
-        valueExpr: "StorageCode",
-      },
-    },
-    {
-      dataField: "DealerCode",
-      caption: t("DealerCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+
+        setCellValue: (rowData: any, value: any) => {
+          rowData.StorageCode = value;
+          rowData.StorageName = listStorage?.data?.DataList?.find(
+            (item: any) => item.StorageCode === value
+          )?.StorageName;
         },
-      ],
-      editorOptions: {
-        dataSource: listDealer?.data?.DataList ?? [],
-        displayExpr: "DealerCode",
-        valueExpr: "DealerCode",
       },
-      setCellValue: (newData: any, value: any) => {
-        newData.DealerCode = value;
-        newData.DealerName = value;
+      {
+        dataField: "StorageName",
+        caption: t("StorageName"),
+        editorType: "dxTextBox",
+        visible: true,
       },
-    },
-    {
-      dataField: "DealerName",
-      caption: t("DealerName"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listDealer?.data?.DataList ?? [],
-        displayExpr: "DealerName",
-        valueExpr: "DealerCode",
+      {
+        dataField: "DealerCode",
+        caption: t("DealerCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listDealer?.data?.DataList ?? [],
+          displayExpr: "DealerCode",
+          valueExpr: "DealerCode",
+        },
+        setCellValue: (rowData: any, value: any) => {
+          rowData.DealerCode = value;
+          rowData.DealerName = listDealer?.data?.DataList?.find(
+            (item: any) => item.DealerCode === value
+          )?.DealerName;
+        },
       },
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("FlagActive"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
+      {
+        dataField: "DealerName",
+        caption: t("DealerName"),
+        editorType: "dxTextBox",
+        visible: true,
       },
-    },
-  ];
+      {
+        dataField: "FlagActive",
+        caption: t("FlagActive"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ],
+    [listDealer, listStorage, data]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "DealerCode" || e.dataField === "StorageCode") {

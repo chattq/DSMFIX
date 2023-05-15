@@ -9,7 +9,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/Mst_CarOCNStore";
 import { HeaderPart } from "../components/header-part";
@@ -25,7 +25,7 @@ export const Mst_CarOCNPage = () => {
   const keyword = useAtomValue(keywordAtom);
 
   const { data, isLoading, refetch } = useQuery(
-    ["CarCancelType", keyword],
+    ["CarOCN", keyword],
     () =>
       api.Mst_CarOCN_Search({
         KeyWord: keyword,
@@ -36,7 +36,7 @@ export const Mst_CarOCNPage = () => {
     {}
   );
 
-  const listModel = useQuery([], api.Mst_CarModel_GetAllActive);
+  const listModel = useQuery(["model"], api.Mst_CarModel_GetAllActive);
 
   useEffect(() => {
     if (!!data && !data.isSuccess) {
@@ -146,47 +146,49 @@ export const Mst_CarOCNPage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "ModelCode",
-      caption: t("ModelCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "ModelCode",
+        caption: t("ModelCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listModel?.data?.DataList ?? [],
+          displayExpr: "ModelCode",
+          valueExpr: "ModelCode",
         },
-      ],
-      editorOptions: {
-        dataSource: listModel?.data?.DataList ?? [],
-        displayExpr: "ModelCode",
-        valueExpr: "ModelCode",
       },
-    },
-    {
-      dataField: "OCNCode",
-      caption: t("OCNCode"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "OCNDescription",
-      caption: t("OCNDescription"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+      {
+        dataField: "OCNCode",
+        caption: t("OCNCode"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "OCNDescription",
+        caption: t("OCNDescription"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    [listModel]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "ModelCode" || e.dataField === "OCNCode") {

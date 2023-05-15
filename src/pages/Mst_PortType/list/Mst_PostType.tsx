@@ -14,15 +14,16 @@ import { toast } from "react-toastify";
 import { useAtomValue, useSetAtom } from "jotai";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
+import { requiredType } from "@/packages/common/Validation_Rules";
+import { DataGrid } from "devextreme-react";
 
 export const Mst_PortTypePage = () => {
   const api = useClientgateApi();
   const config = useConfiguration();
   const keyword = useAtomValue(keywordAtom);
-  const setSelectedItems = useSetAtom(selectedItemsAtom);
+  const setSelectedItems = useSetAtom(selectedItemsAtom); 
   const { t } = useI18n("Mst_PortType");
   let gridRef: any = useRef(null);
-  const selectedRowKeys = useRef<string[]>([]);
   const showError = useSetAtom(showErrorAtom);
   const { data, isSuccess, isLoading, refetch } = useQuery(
     ["PortType", keyword],
@@ -47,9 +48,7 @@ export const Mst_PortTypePage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef.instance) {
-      gridRef.instance.addRow();
-    }
+    gridRef.current?.instance.addRow();
   };
 
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
@@ -79,30 +78,25 @@ export const Mst_PortTypePage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      // mã cảng , tên cảng , trạng thái
-      dataField: "PortType",
-      caption: t("PortType"),
-      editorType: "dxTextBox",
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      // mã cảng , tên cảng , trạng thái
-      dataField: "PortTypeName",
-      caption: t("PortTypeName"),
-      editorType: "dxTextBox",
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        // mã cảng , tên cảng , trạng thái
+        dataField: "PortType",
+        caption: t("PortType"),
+        editorType: "dxTextBox",
+        validationRules: [requiredType],
+      },
+      {
+        // mã cảng , tên cảng , trạng thái
+        dataField: "PortTypeName",
+        caption: t("PortTypeName"),
+        editorType: "dxTextBox",
+        validationRules: [requiredType],
+      },
+    ],
+    []
+  );
 
   const onDelete = async (id: string) => {
     const respone = await api.Mst_PortType_Delete(id);
@@ -119,6 +113,7 @@ export const Mst_PortTypePage = () => {
       throw new Error(respone.errorCode);
     }
   };
+
   const onCreate = async (data: Mst_PortType) => {
     const respone = await api.Mst_PortType_Create(data);
     if (respone.isSuccess) {
@@ -134,9 +129,8 @@ export const Mst_PortTypePage = () => {
       throw new Error(respone.errorCode);
     }
   };
-  const onUpdate = async (key: string, data: Partial<Mst_PortType>) => {
-    console.log("data ", data, key);
 
+  const onUpdate = async (key: string, data: Partial<Mst_PortType>) => {
     const respone = await api.Mst_PortType_Update(key, data);
     if (respone.isSuccess) {
       toast.success(t("Delete Successfully"));
@@ -193,6 +187,10 @@ export const Mst_PortTypePage = () => {
     }
   };
 
+  const handleReadyGrid = (grid: any) => {
+    gridRef.current = grid;
+  };
+
   return (
     <AdminContentLayout>
       <AdminContentLayout.Slot name="Header">
@@ -214,7 +212,7 @@ export const Mst_PortTypePage = () => {
           columns={columns}
           keyExpr={"PortType"}
           onSaveRow={handleSaveRow}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleReadyGrid}
           allowSelection={true}
           allowInlineEdit={true}
           inlineEditMode="row"

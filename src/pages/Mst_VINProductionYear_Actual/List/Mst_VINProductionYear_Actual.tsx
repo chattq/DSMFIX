@@ -12,18 +12,26 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_VINProductionYear_ActualPage = () => {
   const { t } = useI18n("Mst_VINProductionYear_Actual");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   // call api posttyle search
@@ -51,9 +59,7 @@ export const Mst_VINProductionYear_ActualPage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current?.instance?.addRow();
   };
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_VINProductionYear_Actual_Upload(file);
@@ -150,58 +156,64 @@ export const Mst_VINProductionYear_ActualPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "AssemblyStatus", // Loại xe
-      caption: t("AssemblyStatus"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "VINCharacters", // Năm sản xuất theo ký tự vin
-      caption: t("VINCharacters"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "ProductionYear", // Năm sản xuất
-      caption: t("ProductionYear"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "FlagActive", // Trạng thái
-      caption: t("Flag Active"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
+  const columns: ColumnOptions[] = useMemo<any>(
+    () => [
+      {
+        dataField: "AssemblyStatus", // Loại xe
+        caption: t("AssemblyStatus"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
       },
-    },
-  ];
+      {
+        dataField: "VINCharacters", // Năm sản xuất theo ký tự vin
+        caption: t("VINCharacters"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "ProductionYear", // Năm sản xuất
+        caption: t("ProductionYear"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "FlagActive", // Trạng thái
+        caption: t("Flag Active"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "AssemblyStatus" || e.dataField === "VINCharacters") {
       e.editorOptions.readOnly = !e.row?.isNewRow;
     }
   };
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
 
   const handleDeleteRows = async (rows: any[]) => {
     const resp = await api.Mst_VINProductionYear_Actual_DeleteMultiple(rows);
@@ -244,7 +256,7 @@ export const Mst_VINProductionYear_ActualPage = () => {
           keyExpr={["AssemblyStatus", "VINCharacters"]}
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

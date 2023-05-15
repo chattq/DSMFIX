@@ -14,7 +14,7 @@ import { StatusButton } from "@/packages/ui/status-button";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -33,7 +33,7 @@ export const Mst_DealerSalesTypePage = () => {
   const keyword = useAtomValue(keywordAtom);
 
   const { data, isLoading, refetch } = useQuery(
-    [keyword],
+    ["dealerSalesType", keyword],
     () =>
       api.Mst_DealerSalesType_Search({
         KeyWord: keyword,
@@ -55,7 +55,7 @@ export const Mst_DealerSalesTypePage = () => {
   }, [data]);
 
   const listDealerGroup = useQuery(
-    [],
+    ["listDealer"],
     api.Mst_DealerSalesGroupType_GetAllActive
   );
 
@@ -157,79 +157,82 @@ export const Mst_DealerSalesTypePage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "SalesGroupType",
-      caption: t("SalesGroupType"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "SalesGroupType",
+        caption: t("SalesGroupType"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+        editorOptions: {
+          dataSource: listDealerGroup?.data?.DataList ?? [],
+          displayExpr: "SalesGroupType",
+          valueExpr: "SalesGroupType",
         },
-      ],
-      allowFiltering: true,
-      editorOptions: {
-        dataSource: listDealerGroup?.data?.DataList ?? [],
-        displayExpr: "SalesGroupType",
-        valueExpr: "SalesGroupType",
       },
-    },
-    {
-      dataField: "SalesType",
-      caption: t("SalesType"),
-      editorType: "dxTextBox",
-      visible: true,
+      {
+        dataField: "SalesType",
+        caption: t("SalesType"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "SalesTypeName",
-      caption: t("SalesTypeName"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "SalesTypeNameVN",
-      caption: t("SalesTypeNameVN"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "SalesTypeDescription",
-      caption: t("SalesTypeDescription"),
-      editorType: "dxTextBox",
-      visible: true,
-      width: 300,
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("FlagActive"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
       },
-    },
-  ];
+      {
+        dataField: "SalesTypeName",
+        caption: t("SalesTypeName"),
+        editorType: "dxTextBox",
+        visible: true,
+
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "SalesTypeNameVN",
+        caption: t("SalesTypeNameVN"),
+        editorType: "dxTextBox",
+        visible: true,
+
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "SalesTypeDescription",
+        caption: t("SalesTypeDescription"),
+        editorType: "dxTextBox",
+        visible: true,
+        width: 300,
+      },
+      {
+        dataField: "FlagActive",
+        caption: t("FlagActive"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ],
+    [listDealerGroup]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "SalesType" || e.dataField === "SalesGroupType") {

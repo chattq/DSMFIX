@@ -1,10 +1,10 @@
+import { useI18n } from "@/i18n/useI18n";
+import { useClientgateApi } from "@packages/api";
+import { showErrorAtom } from "@packages/store";
 import { HeaderForm } from "@packages/ui/header-form/header-form";
 import { useAtomValue, useSetAtom } from "jotai";
-import { keywordAtom, selectedItemsAtom } from "./../components/screen-atom";
 import { toast } from "react-toastify";
-import { useI18n } from "@/i18n/useI18n";
-import { showErrorAtom } from "@packages/store";
-import { useClientgateApi } from "@packages/api";
+import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 
 interface HeaderPartProps {
   onAddNew?: () => void;

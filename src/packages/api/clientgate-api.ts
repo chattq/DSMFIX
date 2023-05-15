@@ -56,6 +56,10 @@ import { useMst_UnitPriceAVN } from "./clientgate/Mst_UnitPriceAVNApi";
 import { useMst_VINProductionYear_Actual } from "./clientgate/Mst_VINProductionYear_Actual";
 import { useMst_WarrantyExpires } from "./clientgate/Mst_WarrantyExpiresApi";
 import {FlagActiveConvertor} from "@packages/api/interceptors/flag-active-convertor";
+import { useMst_CarPrice } from "./clientgate/Mst_CarPriceApi";
+import { useMst_BankDealer } from "./clientgate/Mst_BankDealerApi";
+import { useMst_Department } from "./clientgate/Mst_DepartmentApi";
+import { useMst_Qualification } from "./clientgate/Mst_QualificationApi";
 
 /**
  * Creates an axios instance for making requests to the ClientGate API.
@@ -217,6 +221,10 @@ export const createClientGateApi = (
   const useMstMngRateTonKhoBanHang = useMst_MngRateTonKhoBanHang(apiBase);
   const useMstWarrantyExpires = useMst_WarrantyExpires(apiBase);
   const useMstBankAccount = useMst_BankAccount(apiBase);
+  const useMstCarPrice = useMst_CarPrice(apiBase);
+  const useMstBankDealer = useMst_BankDealer(apiBase);
+  const useMstDepartment = useMst_Department(apiBase);
+  const useMstQualification = useMst_Qualification(apiBase);
   return {
     ...useMstBankAccount,
     ...useMstWarrantyExpires,
@@ -272,6 +280,10 @@ export const createClientGateApi = (
     ...mstCarColor,
     ...mstCarStdOpt,
     ...mstRateApprOrderModelMax,
+    ...useMstCarPrice,
+    ...useMstBankDealer,
+    ...useMstDepartment,
+    ...useMstQualification,
   };
 };
 

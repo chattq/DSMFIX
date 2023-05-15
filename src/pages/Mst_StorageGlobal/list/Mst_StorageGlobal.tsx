@@ -14,7 +14,7 @@ import { StatusButton } from "@/packages/ui/status-button";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -156,77 +156,76 @@ export const Mst_StorageGlobalPage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "StorageCode",
-      caption: t("StorageCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      editorOptions: {
-        dataSource: listStorage?.data?.DataList ?? [],
-        displayExpr: "StorageCode",
-        valueExpr: "StorageCode",
-      },
-      setCellValue: (newData: any, value: any, currentRowData: any) => {
-        newData.StorageCode = value;
-        newData.StorageName = value;
-      },
-    },
-    {
-      dataField: "StorageName",
-      caption: t("StorageName"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listStorage?.data?.DataList ?? [],
-        displayExpr: "StorageName",
-        valueExpr: "StorageCode",
-      },
-    },
-    {
-      dataField: "ModelCode",
-      caption: t("ModelCode"),
-      editorType: "dxSelectBox",
-      visible: true,
+  console.log(data?.DataList);
 
-      editorOptions: {
-        dataSource: listModel?.data?.DataList ?? [],
-        displayExpr: "ModelCode",
-        valueExpr: "ModelCode",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "StorageCode",
+        caption: t("StorageCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listStorage?.data?.DataList ?? [],
+          displayExpr: "StorageCode",
+          valueExpr: "StorageCode",
+        },
+        setCellValue: (rowData: any, value: any) => {
+          rowData.StorageCode = value;
+          rowData.StorageName = listStorage?.data?.DataList?.find(
+            (item: any) => item.StorageCode === value
+          )?.StorageName;
+        },
       },
-      setCellValue: (newData: any, value: any, currentRowData: any) => {
-        newData.ModelName = value;
-        newData.ModelCode = value;
+      {
+        dataField: "StorageName",
+        caption: t("StorageName"),
+        editorType: "dxTextBox",
+        visible: true,
       },
-    },
-    {
-      dataField: "ModelName",
-      caption: t("ModelName"),
-      editorType: "dxSelectBox",
-      visible: true,
-      editorOptions: {
-        dataSource: listModel?.data?.DataList ?? [],
-        displayExpr: "ModelName",
-        valueExpr: "ModelCode",
+      {
+        dataField: "ModelCode",
+        caption: t("ModelCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+
+        editorOptions: {
+          dataSource: listModel?.data?.DataList ?? [],
+          displayExpr: "ModelCode",
+          valueExpr: "ModelCode",
+        },
+        setCellValue: (rowData: any, value: any) => {
+          rowData.ModelCode = value;
+          rowData.ModelName = listModel?.data?.DataList?.find(
+            (item: any) => item.ModelCode === value
+          )?.ModelName;
+        },
       },
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("FlagActive"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
+      {
+        dataField: "ModelName",
+        caption: t("ModelName"),
+        editorType: "dxTextBox",
+        visible: true,
       },
-    },
-  ];
+      {
+        dataField: "FlagActive",
+        caption: t("FlagActive"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ],
+    [listStorage, listModel, data]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "ModelCode" || e.dataField === "StorageCode") {

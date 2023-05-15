@@ -13,7 +13,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -151,32 +151,35 @@ export const Mst_CarCancelTypePage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "CarCancelType",
-      caption: t("CarCancelType"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "CarCancelTypeName",
-      caption: t("CarCancelTypeName"),
-      editorType: "dxTextBox",
-      visible: true,
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "CarCancelType",
+        caption: t("CarCancelType"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+      },
+      {
+        dataField: "CarCancelTypeName",
+        caption: t("CarCancelTypeName"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "CarCancelType") {

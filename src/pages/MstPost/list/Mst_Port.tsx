@@ -8,17 +8,27 @@ import { FlagActiveEnum, Mst_Port, SearchParam } from "@/packages/types";
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
+import { phoneType, requiredType } from "@/packages/common/Validation_Rules";
+import { uniqueFilterByDataField } from "@/packages/common";
+import { DataGrid } from "devextreme-react";
 export const Mst_PortPage = () => {
   const { t } = useI18n("Mst_Port");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   // call api posttyle search
@@ -47,31 +57,6 @@ export const Mst_PortPage = () => {
     {}
   );
 
-  const portAddressFilter = useMemo(() => {
-    if (data?.isSuccess) {
-      const valueFilt = data.DataList?.reduce((acc, cur) => {
-        const value = cur.PortAddress;
-        const existingItem = acc.find(
-          (item: any) => item.PortAddress === value
-        );
-        if (!existingItem) {
-          acc.push({ PortAddress: value, count: 1 });
-        } else {
-          existingItem.count++;
-        }
-        return acc;
-      }, [] as { PortAddress: string; count: number }[])
-        .sort((a: any, b: any) => a.PortAddress.localeCompare(b.PortAddress))
-        .map((item: any) => ({
-          text: `${item.PortAddress} (${item.count})`,
-          value: item.PortAddress,
-        }));
-      return valueFilt;
-    } else {
-      return [];
-    }
-  }, [data]);
-
   useEffect(() => {
     if (!!data && !data.isSuccess) {
       showError({
@@ -83,10 +68,9 @@ export const Mst_PortPage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current?.instance.addRow();
   };
+
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
     const resp = await api.Mst_Port_Upload(file);
     if (resp.isSuccess) {
@@ -149,6 +133,7 @@ export const Mst_PortPage = () => {
       });
     }
   };
+
   const onCreate = async (data: Mst_Port) => {
     const resp = await api.Mst_Port_Create(data);
     if (resp.isSuccess) {
@@ -163,6 +148,7 @@ export const Mst_PortPage = () => {
     });
     throw new Error(resp.errorCode);
   };
+
   const onUpdate = async (key: string, data: Partial<Mst_Port>) => {
     const resp = await api.Mst_Port_Update(key, data);
     if (resp.isSuccess) {
@@ -178,127 +164,100 @@ export const Mst_PortPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const PortCodeFilter = useMemo(() => {
-    if (data?.isSuccess) {
-      const dataValue = data.DataList?.reduce((acc, cur) => {
-        const value = cur.PortAddress;
-        const existingItem = acc.find(
-          (item: any) => item.PortAddress === value
-        );
-        if (!existingItem) {
-          acc.push({ PortAddress: value, count: 1 });
-        } else {
-          existingItem.count++;
-        }
-        return acc;
-      }, [] as { PortAddress: string; count: number }[])
-        .sort((a: any, b: any) => a.PortAddress.localeCompare(b.PortAddress))
-        .map((item: any) => ({
-          text: `${item.PortAddress} (${item.count})`,
-          value: item.PortAddress,
-        }));
-      return dataValue;
-    } else {
-      return [];
-    }
-  }, [data]);
-
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "PortCode", // mã cảng
-      caption: t("Port Code"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(() => {
+    return [
+      {
+        dataField: "PortCode", // mã cảng
+        caption: t("Port Code"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [requiredType, phoneType],
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList ?? [],
+            "PortCode",
+            t("( Empty )")
+          ),
         },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
-        },
-      ],
-      headerFilter: {
-        dataSource: PortCodeFilter,
       },
-    },
-    {
-      dataField: "PortType", // loại cảng
-      caption: t("Port Type"),
-      editorType: "dxSelectBox",
-      visible: true,
-      allowFiltering: false,
-      editorOptions: {
-        placeholder: t("Select"),
-        dataSource: ListPortType?.DataList ?? [],
-        displayExpr: "PortType",
-        valueExpr: "PortType",
+      {
+        dataField: "PortType", // loại cảng
+        caption: t("Port Type"),
+        editorType: "dxSelectBox",
+        visible: true,
+        allowFiltering: false,
+        editorOptions: {
+          placeholder: t("Select"),
+          dataSource: ListPortType?.DataList ?? [],
+          displayExpr: "PortType",
+          valueExpr: "PortType",
+        },
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList ?? [],
+            "PortType",
+            t("( Empty )")
+          ),
+        },
+        validationRules: [requiredType, phoneType],
       },
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "PortName", // tên
+        caption: t("Port Name"),
+        editorType: "dxTextBox",
+        visible: true,
+        allowFiltering: false,
+        editorOptions: {
+          placeholder: t("Input"),
         },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList ?? [],
+            "PortName",
+            t("( Empty )")
+          ),
         },
-      ],
-    },
-    {
-      dataField: "PortName", // tên
-      caption: t("Port Name"),
-      editorType: "dxTextBox",
-      visible: true,
-      allowFiltering: false,
-      editorOptions: {
-        placeholder: t("Input"),
+        validationRules: [requiredType, phoneType],
       },
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "PortAddress", // Địa chỉ
+        caption: t("PortAddress"),
+        editorType: "dxTextBox",
+        visible: true,
+        allowFiltering: true,
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList ?? [],
+            "PortAddress",
+            t("( Empty )")
+          ),
         },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
+        editorOptions: {
+          placeholder: t("Input"),
         },
-      ],
-    },
-    {
-      dataField: "PortAddress", // Địa chỉ
-      caption: t("PortAddress"),
-      editorType: "dxTextBox",
-      visible: true,
-      allowFiltering: true,
-      headerFilter: {
-        dataSource: portAddressFilter,
       },
-      editorOptions: {
-        placeholder: t("Input"),
-      },
-    },
-    {
-      dataField: "ProvinceCode", // Tỉnh thành
-      caption: t("Province Code"),
-      editorType: "dxSelectBox",
-      visible: true,
-      allowFiltering: false,
-
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "ProvinceCode", // Tỉnh thành
+        caption: t("Province Code"),
+        editorType: "dxSelectBox",
+        visible: true,
+        allowFiltering: false,
+        headerFilter: {
+          dataSource: uniqueFilterByDataField(
+            data?.DataList ?? [],
+            "ProvinceCode",
+            t("( Empty )")
+          ),
         },
-        {
-          type: "pattern",
-          pattern: /[a-zA-Z0-9]/,
+        validationRules: [requiredType, phoneType],
+        editorOptions: {
+          dataSource: listProvince?.DataList ?? [],
+          displayExpr: "ProvinceName",
+          valueExpr: "ProvinceCode",
         },
-      ],
-      editorOptions: {
-        dataSource: listProvince?.DataList ?? [],
-        displayExpr: "ProvinceName",
-        valueExpr: "ProvinceCode",
       },
-    },
-  ];
+    ];
+  }, [ListPortType, listProvince]);
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "PortCode") {
@@ -326,6 +285,10 @@ export const Mst_PortPage = () => {
     }
   };
 
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
+
   return (
     <AdminContentLayout>
       <AdminContentLayout.Slot name="Header">
@@ -351,7 +314,7 @@ export const Mst_PortPage = () => {
           keyExpr="PortCode"
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

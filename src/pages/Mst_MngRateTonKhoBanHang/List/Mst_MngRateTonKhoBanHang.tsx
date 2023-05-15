@@ -12,26 +12,36 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_MngRateTonKhoBanHangPage = () => {
   const { t } = useI18n("Mst_MngRateTonKhoBanHang");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
 
-  const { data: listModel } = useQuery(["model"], () =>
-    api.Mst_CarModel_GetAllActive()
+  const { data: listModel, isLoading: isLoadingModel } = useQuery(
+    ["model"],
+    () => api.Mst_CarModel_GetAllActive()
   );
-  const { data: listDealer } = useQuery(["dealer"], () =>
-    api.Mst_Dealer_GetAllActive()
+  const { data: listDealer, isLoading: isLoadingDealer } = useQuery(
+    ["dealer"],
+    () => api.Mst_Dealer_GetAllActive()
   );
 
   // call api posttyle search
@@ -59,9 +69,7 @@ export const Mst_MngRateTonKhoBanHangPage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current?._instance?.addRow();
   };
 
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
@@ -79,7 +87,7 @@ export const Mst_MngRateTonKhoBanHangPage = () => {
   };
 
   const handleSelectionChanged = (rowKeys: string[]) => {
-    console.log("rowKeys ", rowKeys);
+    // console.log("rowKeys ", rowKeys);
     setSelectedItems(rowKeys);
   };
   // khi mà tác động vào thằng row thì gọi thằng này
@@ -161,83 +169,89 @@ export const Mst_MngRateTonKhoBanHangPage = () => {
     throw new Error(resp.errorCode);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "DealerCode",
-      caption: t("DealerCode"),
-      visible: true,
-      editorType: "dxSelectBox",
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo<any>(
+    () => [
+      {
+        dataField: "DealerCode",
+        caption: t("DealerCode"),
+        visible: true,
+        editorType: "dxSelectBox",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          displayExpr: "DealerCode",
+          valueExpr: "DealerCode",
+          dataSource: listDealer?.DataList ?? [],
         },
-      ],
-      editorOptions: {
-        displayExpr: "DealerCode",
-        valueExpr: "DealerCode",
-        dataSource: listDealer?.DataList ?? [],
-      },
-      setCellValue: (newValue: any, value: any) => {
-        newValue.DealerCode = value;
-        const data = listDealer?.DataList ?? [];
-        const dataValue = data.find((item) => {
-          return item.DealerCode === value;
-        });
-        if (dataValue) {
-          newValue.md_DealerName = dataValue.DealerName;
-        }
-      },
-    },
-    {
-      dataField: "md_DealerName",
-      caption: t("md_DealerName"),
-      visible: true,
-      editorType: "dxTextBox",
-      editorOptions: {
-        readOnly: true,
-      },
-    },
-    {
-      dataField: "ModelCode",
-      caption: t("ModelCode"),
-      visible: true,
-      editorType: "dxSelectBox",
-      validationRules: [
-        {
-          type: "required",
+        setCellValue: (newValue: any, value: any) => {
+          newValue.DealerCode = value;
+          const data = listDealer?.DataList ?? [];
+          const dataValue = data.find((item) => {
+            return item.DealerCode === value;
+          });
+          if (dataValue) {
+            newValue.md_DealerName = dataValue.DealerName;
+          }
         },
-      ],
-      editorOptions: {
-        displayExpr: "ModelCode",
-        valueExpr: "ModelCode",
-        dataSource: listModel?.DataList ?? [],
       },
-      setCellValue: (newValue: any, value: any) => {
-        newValue.ModelCode = value;
-        const data = listModel?.DataList ?? [];
-        const dataValue = data.find((item) => {
-          return item.ModelCode === value;
-        });
-        if (dataValue) {
-          newValue.mcm_ModelName = dataValue.ModelName;
-        }
+      {
+        dataField: "md_DealerName",
+        caption: t("md_DealerName"),
+        visible: true,
+        editorType: "dxTextBox",
+        editorOptions: {
+          readOnly: true,
+        },
       },
-    },
-    {
-      dataField: "mcm_ModelName",
-      caption: t("mcm_ModelName"),
-      visible: true,
-      editorType: "dxTextBox",
-      editorOptions: {
-        readOnly: true,
+      {
+        dataField: "ModelCode",
+        caption: t("ModelCode"),
+        visible: true,
+        editorType: "dxSelectBox",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          displayExpr: "ModelCode",
+          valueExpr: "ModelCode",
+          dataSource: listModel?.DataList ?? [],
+        },
+        setCellValue: (newValue: any, value: any) => {
+          newValue.ModelCode = value;
+          const data = listModel?.DataList ?? [];
+          const dataValue = data.find((item) => {
+            return item.ModelCode === value;
+          });
+          if (dataValue) {
+            newValue.mcm_ModelName = dataValue.ModelName;
+          }
+        },
       },
-    },
-    {
-      dataField: "NguongBH", // Biên độ đặt hàng (%)
-      caption: t("NguongBH"),
-      editorType: "dxNumberBox",
-    },
-  ];
+      {
+        dataField: "mcm_ModelName",
+        caption: t("mcm_ModelName"),
+        visible: true,
+        editorType: "dxTextBox",
+        editorOptions: {
+          readOnly: true,
+        },
+      },
+      {
+        dataField: "NguongBH", // Biên độ đặt hàng (%)
+        caption: t("NguongBH"),
+        editorType: "dxNumberBox",
+      },
+    ],
+    [listModel, listDealer]
+  );
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "md_DealerName" || e.dataField === "mcm_ModelName") {
@@ -279,7 +293,7 @@ export const Mst_MngRateTonKhoBanHangPage = () => {
       </AdminContentLayout.Slot>
       <AdminContentLayout.Slot name="Content">
         <BaseGridView
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingDealer || isLoadingModel}
           defaultPageSize={config.PAGE_SIZE}
           dataSource={data?.DataList ?? []}
           columns={columns}

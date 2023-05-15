@@ -5,28 +5,19 @@ import { AdminContentLayout } from "@/packages/layouts/admin-content-layout";
 import { PageHeaderLayout } from "@/packages/layouts/page-header-layout";
 import { showErrorAtom } from "@/packages/store";
 import {
-  FlagActiveEnum,
   Auto_MapVIN_DistributionSumRate,
+  FlagActiveEnum,
   SearchParam,
-  Mst_CarSpec,
 } from "@/packages/types";
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue, useSetAtom } from "jotai";
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { DataGrid } from "devextreme-react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
-import { StatusButton } from "@/packages/ui/status-button";
-import { DataGrid } from "devextreme-react";
 export const Auto_MapVIN_DistributionSumRatePage = () => {
   const { t } = useI18n("Auto_MapVIN_DistributionSumRate");
   const config = useConfiguration();
@@ -73,7 +64,7 @@ export const Auto_MapVIN_DistributionSumRatePage = () => {
   }, [data]);
 
   const handleAddNew = () => {
-    gridRef.current?._instance?.addRow();
+    gridRef.current?.instance?.addRow();
   };
 
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
@@ -230,7 +221,7 @@ export const Auto_MapVIN_DistributionSumRatePage = () => {
               filter: options.data?.ModelCode
                 ? ["ModelCode", "=", options.data?.ModelCode]
                 : null,
-            };
+            } as any;
           },
           displayExpr: "SpecCode",
           valueExpr: "SpecCode",
@@ -275,7 +266,7 @@ export const Auto_MapVIN_DistributionSumRatePage = () => {
               filter: options.data?.ModelCode
                 ? ["ModelCode", "=", options.data?.ModelCode]
                 : null,
-            };
+            } as any;
           },
           displayExpr: "ColorCode",
           valueExpr: "ColorCode",

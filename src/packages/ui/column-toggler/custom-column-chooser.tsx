@@ -20,6 +20,7 @@ interface CustomColumnChooserProps {
   onHiding: () => void;
   onApply: (columns: any[]) => void;
   storeKey?: string;
+  position?: "left" | "right";
 }
 
 export default function CustomColumnChooser(props: CustomColumnChooserProps) {
@@ -35,6 +36,7 @@ export default function CustomColumnChooser(props: CustomColumnChooserProps) {
     cancelText,
     title,
     selectAllText,
+    position = "right",
   } = props;
   const { t } = useI18n("Common");
   const listRef = useRef<List>(null);
@@ -116,7 +118,7 @@ export default function CustomColumnChooser(props: CustomColumnChooserProps) {
       visible={visible}
       onHiding={onPopupHiding}
     >
-      <Position at="right top" my="right top" of={`${container} ${button}`} />
+      <Position at={`${position} top`} my={`${position} top`} of={`${container} ${button}`} />
         <div className={"w-full flex flex-row max-h-[400px]"}>
           <ScrollView className={"flex-1"}
                       height={350}

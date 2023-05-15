@@ -13,7 +13,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -32,7 +32,7 @@ export const Rpt_PrincipleContractPage = () => {
   const keyword = useAtomValue(keywordAtom);
 
   const { data, isLoading, refetch } = useQuery(
-    ["CarCancelType", keyword],
+    ["PrincipleContract", keyword],
     () =>
       api.Rpt_PrincipleContract_Search({
         KeyWord: keyword,
@@ -158,85 +158,88 @@ export const Rpt_PrincipleContractPage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "DealerCode",
-      caption: t("DealerCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "DealerCode",
+        caption: t("DealerCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listDealer?.data?.DataList ?? [],
+          displayExpr: "DealerCode",
+          valueExpr: "DealerCode",
         },
-      ],
-      editorOptions: {
-        dataSource: listDealer?.data?.DataList ?? [],
-        displayExpr: "DealerCode",
-        valueExpr: "DealerCode",
       },
-    },
-    {
-      dataField: "PrincipleContractNo",
-      caption: t("PrincipleContractNo"),
-      editorType: "dxTextBox",
-      visible: true,
+      {
+        dataField: "PrincipleContractNo",
+        caption: t("PrincipleContractNo"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "BankInfo",
-      caption: t("BankInfo"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      width: 300,
-    },
-    {
-      dataField: "PrincipleContractDate",
-      caption: t("PrincipleContractDate"),
-      editorType: "dxDateBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      format: "yyyy-MM-dd",
-      editorOptions: {
-        type: "date",
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
       },
-    },
-    {
-      dataField: "Representative",
-      caption: t("Representative"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "BankInfo",
+        caption: t("BankInfo"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        width: 300,
+      },
+      {
+        dataField: "PrincipleContractDate",
+        caption: t("PrincipleContractDate"),
+        editorType: "dxDateBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        format: "yyyy-MM-dd",
+        editorOptions: {
+          type: "date",
         },
-      ],
-    },
-    {
-      dataField: "JobTitle",
-      caption: t("JobTitle"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+      },
+      {
+        dataField: "Representative",
+        caption: t("Representative"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "JobTitle",
+        caption: t("JobTitle"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    [listDealer, data]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "DealerCode" || e.dataField === "PrincipleContractNo") {

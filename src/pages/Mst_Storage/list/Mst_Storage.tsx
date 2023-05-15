@@ -9,7 +9,7 @@ import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/Mst_StorageStore";
 import { HeaderPart } from "../components/header-part";
@@ -36,7 +36,10 @@ export const Mst_StoragePage = () => {
     {}
   );
 
-  const listProvince = useQuery([], api.Mst_Province_GetAllActive);
+  const listProvince = useQuery(
+    ["listProvince"],
+    api.Mst_Province_GetAllActive
+  );
 
   useEffect(() => {
     if (!!data && !data.isSuccess) {
@@ -164,71 +167,74 @@ export const Mst_StoragePage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "StorageCode",
-      caption: t("StorageCode"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      allowFiltering: true,
-    },
-    {
-      dataField: "ProvinceCode",
-      caption: t("ProvinceCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-      editorOptions: {
-        dataSource: listProvince.data?.DataList || [],
-        displayExpr: "ProvinceName",
-        valueExpr: "ProvinceCode",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "StorageCode",
+        caption: t("StorageCode"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
       },
-    },
-    {
-      dataField: "StorageName",
-      caption: t("StorageName"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+      {
+        dataField: "ProvinceCode",
+        caption: t("ProvinceCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        editorOptions: {
+          dataSource: listProvince.data?.DataList || [],
+          displayExpr: "ProvinceName",
+          valueExpr: "ProvinceCode",
         },
-      ],
-    },
+      },
+      {
+        dataField: "StorageName",
+        caption: t("StorageName"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
 
-    {
-      dataField: "StorageAddress",
-      caption: t("StorageAddress"),
-      editorType: "dxTextBox",
-      visible: true,
+      {
+        dataField: "StorageAddress",
+        caption: t("StorageAddress"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "StorageType",
-      caption: t("StorageType"),
-      editorType: "dxTextBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "StorageType",
+        caption: t("StorageType"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (

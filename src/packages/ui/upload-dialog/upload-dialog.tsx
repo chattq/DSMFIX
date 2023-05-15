@@ -1,12 +1,12 @@
-import {useCallback, useRef, useState} from 'react';
-import {Button} from 'devextreme-react/button';
-import {FileUploader} from 'devextreme-react/file-uploader';
-import {Popup, ToolbarItem} from 'devextreme-react/popup';
-import {useI18n} from '@/i18n/useI18n';
-import {logger} from '@/packages/logger';
-import {useConfiguration, useVisibilityControl} from "@packages/hooks";
-import "./upload-dialog.scss"
-import {ProgressBar} from "devextreme-react";
+import { useCallback, useRef, useState } from "react";
+import { Button } from "devextreme-react/button";
+import { FileUploader } from "devextreme-react/file-uploader";
+import { Popup, ToolbarItem } from "devextreme-react/popup";
+import { useI18n } from "@/i18n/useI18n";
+import { logger } from "@/packages/logger";
+import { useConfiguration, useVisibilityControl } from "@packages/hooks";
+import "./upload-dialog.scss";
+import { ProgressBar } from "devextreme-react";
 
 type UploadDialogProps = {
   visible: boolean;
@@ -16,19 +16,24 @@ type UploadDialogProps = {
   className?: string;
 };
 
-export const UploadDialog = ({visible, onUpload, onCancel, onDownloadTemplate, className = ''}: UploadDialogProps) => {
-  const {t} = useI18n("Common");
-  const config = useConfiguration()
+export const UploadDialog = ({
+  visible,
+  onUpload,
+  onCancel,
+  onDownloadTemplate,
+  className = "",
+}: UploadDialogProps) => {
+  const { t } = useI18n("Common");
+  const config = useConfiguration();
   const [files, setFiles] = useState<File[]>([]);
 
-
   const handleFileSelection = (event: any) => {
-    logger.debug('files:', event);
+    logger.debug("files:", event);
     setFiles(event.value);
   };
 
   const handleUploadClick = () => {
-    logger.debug('upload files:', files);
+    logger.debug("upload files:", files);
     onUpload(files);
     // setFiles([]);
   };
@@ -38,20 +43,20 @@ export const UploadDialog = ({visible, onUpload, onCancel, onDownloadTemplate, c
     setFiles([]);
   };
   const [isDropZoneActive, setIsDropZoneActive] = useState(false);
-  const progressVisibility = useVisibilityControl({defaultVisible: false})
+  const progressVisibility = useVisibilityControl({ defaultVisible: false });
   const [progressValue, setProgressValue] = useState(0);
   const [imageSource, setImageSource] = useState("");
   const [textVisible, setTextVisible] = useState(true);
 
   function onDropZoneEnter(e: any) {
-    if (e.dropZoneElement.id === 'dropzone-external') {
-      setIsDropZoneActive(true)
+    if (e.dropZoneElement.id === "dropzone-external") {
+      setIsDropZoneActive(true);
     }
   }
 
   function onDropZoneLeave(e: any) {
-    if (e.dropZoneElement.id === 'dropzone-external') {
-      setIsDropZoneActive(false)
+    if (e.dropZoneElement.id === "dropzone-external") {
+      setIsDropZoneActive(false);
     }
   }
 
@@ -59,11 +64,11 @@ export const UploadDialog = ({visible, onUpload, onCancel, onDownloadTemplate, c
     progressVisibility.open();
   }
 
-  const fileUploadRef = useRef(null)
+  const fileUploadRef = useRef(null);
 
   const handleOnProgress = useCallback((e: any) => {
-    setProgressValue((e.bytesLoaded / e.bytesTotal) * 100)
-  }, [])
+    setProgressValue((e.bytesLoaded / e.bytesTotal) * 100);
+  }, []);
   return (
     <Popup
       visible={visible}
@@ -77,34 +82,61 @@ export const UploadDialog = ({visible, onUpload, onCancel, onDownloadTemplate, c
       className={className}
     >
       <div className={"dropzone-container flex items-center flex-col"}>
-        <div id="dropzone-external"
-             className={`m-auto flex justify-center
+        <div
+          id="dropzone-external"
+          className={`m-auto flex justify-center
             w-[420px] h-[200px] 
-            ${isDropZoneActive ? 'dx-theme-accent-as-border-color dropzone-active' : 'dx-theme-border-color'}`}>
-          {imageSource && <img id="dropzone-image" src={imageSource} alt=""/>}
-          {textVisible
-            && <div id="dropzone-text" className="flex flex-col mx-6 my-2 items-center">
-              <p className={'font-bold font-size-[16px]'}>{t('DragAndDropFileHere')}</p>
-              <p className={'mx-auto'}>{t("Or")}</p>
-            </div>}
+            ${
+              isDropZoneActive
+                ? "dx-theme-accent-as-border-color dropzone-active"
+                : "dx-theme-border-color"
+            }`}
+        >
+          {imageSource && <img id="dropzone-image" src={imageSource} alt="" />}
+          {textVisible && (
+            <div
+              id="dropzone-text"
+              className="flex flex-col mx-6 my-2 items-center"
+            >
+              <p className={"font-bold font-size-[16px]"}>
+                {t("DragAndDropFileHere")}
+              </p>
+              <p className={"mx-auto"}>{t("Or")}</p>
+            </div>
+          )}
         </div>
-        <Button icon={'/images/icons/upload.svg'} id={"btn-trigger"} className={'z-40 top-[-130px]'}
-                type={"default"} stylingMode={'outlined'} hoverStateEnabled={true} text={t('BrowseFile')}/>
-        {(!progressVisibility.visible && files.length < 0) &&
-          <div className={'top-[-100px] relative'}>
-            {t('MaxFileSize')}
-          </div>
-        }
-        {files.length > 0 &&
-          <div className={'file-container flex-col rounded border shadow relative top-[-120px] items-center p-2'}>
-            <div className={''}>
+        <Button
+          icon={"/images/icons/upload.svg"}
+          id={"btn-trigger"}
+          className={"z-40 top-[-130px]"}
+          type={"default"}
+          stylingMode={"outlined"}
+          hoverStateEnabled={true}
+          text={t("BrowseFile")}
+        />
+        {!progressVisibility.visible && files.length < 0 && (
+          <div className={"top-[-100px] relative"}>{t("MaxFileSize")}</div>
+        )}
+        {files.length > 0 && (
+          <div
+            className={
+              "file-container flex-col rounded border shadow relative top-[-120px] items-center p-2"
+            }
+          >
+            <div className={""}>
               {files.map((f, idx) => {
                 return (
                   <div key={idx}>
-                    <Button stylingMode={'text'} icon={'/images/icons/excel-file.svg'} hoverStateEnabled={false}
-                            focusStateEnabled={false} activeStateEnabled={false}/>
-                    {f.name}</div>
-                )
+                    <Button
+                      stylingMode={"text"}
+                      icon={"/images/icons/excel-file.svg"}
+                      hoverStateEnabled={false}
+                      focusStateEnabled={false}
+                      activeStateEnabled={false}
+                    />
+                    {f.name}
+                  </div>
+                );
               })}
             </div>
             <ProgressBar
@@ -117,7 +149,7 @@ export const UploadDialog = ({visible, onUpload, onCancel, onDownloadTemplate, c
               value={progressValue}
             ></ProgressBar>
           </div>
-        }
+        )}
       </div>
       <FileUploader
         id="file-uploader"
@@ -133,22 +165,34 @@ export const UploadDialog = ({visible, onUpload, onCancel, onDownloadTemplate, c
         onUploadStarted={onUploadStarted}
         onProgress={handleOnProgress}
         onUploaded={() => {
-          progressVisibility.close()
-          setProgressValue(0)
+          progressVisibility.close();
+          setProgressValue(0);
         }}
         showFileList={false}
       ></FileUploader>
-      <ToolbarItem location='before' toolbar={'bottom'}>
-        <Button icon={'/images/icons/download.svg'} id={"btn-trigger"} className={''}
-                type={"default"} stylingMode={'text'} hoverStateEnabled={false} text={t('DownloadTemplateFile')}/>
+      <ToolbarItem location="before" toolbar={"bottom"}>
+        <Button
+          onClick={onDownloadTemplate}
+          icon={"/images/icons/download.svg"}
+          id={"btn-trigger"}
+          className={""}
+          type={"default"}
+          stylingMode={"text"}
+          hoverStateEnabled={false}
+          text={t("DownloadTemplateFile")}
+        />
       </ToolbarItem>
-      <ToolbarItem location='after' toolbar={'bottom'}>
-        <Button text={t('Upload')} onClick={handleUploadClick} stylingMode='contained' type="default"/>
+      <ToolbarItem location="after" toolbar={"bottom"}>
+        <Button
+          text={t("Upload")}
+          onClick={handleUploadClick}
+          stylingMode="contained"
+          type="default"
+        />
       </ToolbarItem>
-      <ToolbarItem location='after' toolbar={'bottom'}>
-        <Button text={t('Cancel')} onClick={handleCancelClick}/>
+      <ToolbarItem location="after" toolbar={"bottom"}>
+        <Button text={t("Cancel")} onClick={handleCancelClick} />
       </ToolbarItem>
-
     </Popup>
   );
 };

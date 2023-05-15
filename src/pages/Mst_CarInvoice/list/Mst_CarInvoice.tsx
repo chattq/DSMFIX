@@ -7,9 +7,10 @@ import { showErrorAtom } from "@/packages/store";
 import { FlagActiveEnum, Mst_CarInvoice, SearchParam } from "@/packages/types";
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
+import { DataGrid } from "devextreme-react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -20,7 +21,7 @@ import { HeaderPart } from "../components/header-part";
 export const Mst_CarInvoicePage = () => {
   const { t } = useI18n("Mst_CarInvoice");
   const config = useConfiguration();
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const api = useClientgateApi();
 
   const showError = useSetAtom(showErrorAtom);
@@ -28,7 +29,7 @@ export const Mst_CarInvoicePage = () => {
   const keyword = useAtomValue(keywordAtom);
 
   const { data, isLoading, refetch } = useQuery(
-    ["CarCancelType", keyword],
+    ["carInvoice", keyword],
     () =>
       api.Mst_CarInvoice_Search({
         KeyWord: keyword,
@@ -39,7 +40,10 @@ export const Mst_CarInvoicePage = () => {
     {}
   );
 
-  const listCarSpec = useQuery([], api.Mst_CarSpec_GetAllActive);
+  const { data: listCarSpec, isLoading: isLoadingCarSpec } = useQuery(
+    [],
+    api.Mst_CarSpec_GetAllActive
+  );
 
   useEffect(() => {
     if (!!data && !data.isSuccess) {
@@ -113,9 +117,7 @@ export const Mst_CarInvoicePage = () => {
   };
 
   const handleAddNew = () => {
-    if (gridRef?.instance) {
-      gridRef.instance.addRow();
-    }
+    gridRef.current._instance.addRow();
   };
 
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
@@ -149,71 +151,74 @@ export const Mst_CarInvoicePage = () => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "SpecCode",
-      caption: t("SpecCode"),
-      editorType: "dxSelectBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "SpecCode",
+        caption: t("SpecCode"),
+        editorType: "dxSelectBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+        allowFiltering: true,
+        editorOptions: {
+          dataSource: listCarSpec?.DataList ?? [],
+          displayExpr: "SpecCode",
+          valueExpr: "SpecCode",
         },
-      ],
-      allowFiltering: true,
-      editorOptions: {
-        dataSource: listCarSpec?.data?.DataList ?? [],
-        displayExpr: "SpecCode",
-        valueExpr: "SpecCode",
       },
-    },
-    {
-      dataField: "VehiclesType",
-      caption: t("VehiclesType"),
-      editorType: "dxTextBox",
-      visible: true,
+      {
+        dataField: "VehiclesType",
+        caption: t("VehiclesType"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "NumberOfSeats",
-      caption: t("NumberOfSeats"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "CarType",
-      caption: t("CarType"),
-      editorType: "dxTextBox",
-      visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "NumberOfSeats",
+        caption: t("NumberOfSeats"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "CarType",
+        caption: t("CarType"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "VAT",
-      caption: t("VAT"),
-      editorType: "dxNumberBox",
-      visible: true,
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-  ];
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "VAT",
+        caption: t("VAT"),
+        editorType: "dxNumberBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+    ],
+    [listCarSpec]
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "SpecCode") {
@@ -240,6 +245,9 @@ export const Mst_CarInvoicePage = () => {
       });
     }
   };
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
 
   return (
     <AdminContentLayout>
@@ -259,7 +267,7 @@ export const Mst_CarInvoicePage = () => {
       </AdminContentLayout.Slot>
       <AdminContentLayout.Slot name="Content">
         <BaseGridView
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingCarSpec}
           defaultPageSize={config.PAGE_SIZE}
           columns={columns}
           allowSelection={true}
@@ -267,7 +275,7 @@ export const Mst_CarInvoicePage = () => {
           inlineEditMode="row"
           keyExpr="SpecCode"
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onSaveRow={handleSave}
           onSelectionChanged={handleSelectionChanged}
           onEditorPreparing={handleEditorPreparing}

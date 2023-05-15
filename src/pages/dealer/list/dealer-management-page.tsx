@@ -321,7 +321,12 @@ export const DealerManagementPage = () => {
         <ContentSearchPanelLayout>
           <ContentSearchPanelLayout.Slot name={"SearchPanel"}>
             <div className={"w-[200px]"}>
-              <SearchPanelV2 conditionFields={searchConditions} data={searchCondition} onSearch={handleSearch} />
+              <SearchPanelV2 
+                conditionFields={searchConditions} 
+                data={searchCondition} 
+                onSearch={handleSearch}
+                storeKey={'dealer-search'}
+              />
             </div>
           </ContentSearchPanelLayout.Slot>
           <ContentSearchPanelLayout.Slot name={"ContentPanel"}>

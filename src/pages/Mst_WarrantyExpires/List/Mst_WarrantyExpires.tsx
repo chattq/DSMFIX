@@ -12,23 +12,32 @@ import {
 import { BaseGridView, ColumnOptions } from "@/packages/ui/base-gridview";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { toast } from "react-toastify";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { HeaderPart } from "./header-part";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 export const Mst_WarrantyExpiresPage = () => {
   const { t } = useI18n(" Mst_WarrantyExpires");
   const config = useConfiguration();
   const api = useClientgateApi(); // lấy danh sách api
   const showError = useSetAtom(showErrorAtom); // hiển thị lỗi
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
 
-  const { data: listModel } = useQuery(["model"], () =>
-    api.Mst_CarModel_GetAllActive()
+  const { data: listModel, isLoading: isLoadingModel } = useQuery(
+    ["model"],
+    () => api.Mst_CarModel_GetAllActive()
   );
 
   // call api posttyle search
@@ -54,11 +63,12 @@ export const Mst_WarrantyExpiresPage = () => {
       });
     }
   }, [data]);
+  const handleGridReady = useCallback((grid: any) => {
+    gridRef.current = grid;
+  }, []);
 
   const handleAddNew = () => {
-    if (gridRef._instance) {
-      gridRef._instance.addRow();
-    }
+    gridRef.current?.instance?.addRow();
   };
 
   const handleUploadFile = async (file: File, progressCallback?: Function) => {
@@ -79,6 +89,7 @@ export const Mst_WarrantyExpiresPage = () => {
     console.log("rowKeys ", rowKeys);
     setSelectedItems(rowKeys);
   };
+  // đây là quang
   // khi mà tác động vào thằng row thì gọi thằng này
   const handleSavingRow = async (e: any) => {
     if (e.changes && e.changes.length > 0) {
@@ -254,14 +265,14 @@ export const Mst_WarrantyExpiresPage = () => {
       </AdminContentLayout.Slot>
       <AdminContentLayout.Slot name="Content">
         <BaseGridView
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingModel}
           defaultPageSize={config.PAGE_SIZE}
           dataSource={data?.DataList ?? []}
           columns={columns}
           keyExpr={["ModelCode"]}
           allowSelection={true}
           allowInlineEdit={true}
-          onReady={(ref) => (gridRef = ref)}
+          onReady={handleGridReady}
           onEditorPreparing={handleEditorPreparing}
           onSelectionChanged={handleSelectionChanged}
           onSaveRow={handleSavingRow}

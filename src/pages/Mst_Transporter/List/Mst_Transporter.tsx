@@ -1,7 +1,7 @@
 import { useI18n } from "@/i18n/useI18n";
 import { useClientgateApi } from "@/packages/api";
 import { requiredType } from "@/packages/common/Validation_Rules";
-import { useConfiguration } from "@/packages/hooks";
+import { useConfiguration, useVisibilityControl } from "@/packages/hooks";
 import { AdminContentLayout } from "@/packages/layouts/admin-content-layout";
 import {
   ContentSearchPanelLayout,
@@ -27,7 +27,8 @@ import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { LinkCell } from "@/pages/Mst_Transporter/components/link-cell";
 import { usePopupView } from "../components";
 import { toast } from "react-toastify";
-import {filterByFlagActive, uniqueFilterByDataField} from "@/packages/common";
+import { filterByFlagActive, uniqueFilterByDataField } from "@/packages/common";
+import { LoadPanel } from "devextreme-react";
 export const Mst_TransporterPage = () => {
   const setSearchPanelVisibility = useSetAtom(searchPanelVisibleAtom); // state lưu trữ trạng thái đóng mở của nav search
   const setSelectedItems = useSetAtom(selecteItemsAtom); // state lưu trữ thông tin của items khi mà click radio
@@ -35,6 +36,7 @@ export const Mst_TransporterPage = () => {
   const { t } = useI18n("Mst_Transporter"); // file biên dịch
   const config = useConfiguration();
   const showError = useSetAtom(showErrorAtom); // state lưu trữ lỗi khi call api
+  const loadingControl = useVisibilityControl({defaultVisible: false})
   const [searchCondition] = useState<Partial<Search_Mst_Transporter>>({
     // state deafult của search
     TransporterCode: "",
@@ -211,13 +213,10 @@ export const Mst_TransporterPage = () => {
     },
     {
       headerFilter: {
-        dataSource: filterByFlagActive(
-          data?.DataList,
-          {
-            true: t("Active"),
-            false: t("Inactive"),
-          }
-        ),
+        dataSource: filterByFlagActive(data?.DataList, {
+          true: t("Active"),
+          false: t("Inactive"),
+        }),
       },
       dataField: "FlagActive", // trạng thái
       caption: t("FlagActive"),
@@ -249,17 +248,17 @@ export const Mst_TransporterPage = () => {
 
   // hàm thêm cột ở trong trường hợp popup thì là mở popup
   const handleAddNew = () => {
-    gridRef?.instance?.addRow();
+    gridRef.current?.instance?.addRow();
   };
 
   // hàm chuyển đổi trang thái từ detail sang edit
   const handleSubmit = () => {
-    gridRef?.instance?.saveEditData();
+    gridRef.current?.instance?.saveEditData();
   };
 
   // đóng popup
   const handleCancel = () => {
-    gridRef?.instance?.cancelEditData();
+    gridRef.current?.instance?.cancelEditData();
   };
 
   // hàm delete
@@ -401,7 +400,7 @@ export const Mst_TransporterPage = () => {
 
   // hàm sửa row ( mở popup )
   const handleEdit = (rowIndex: number) => {
-    gridRef?.instance?.editRow(rowIndex);
+    gridRef.current?.instance?.editRow(rowIndex);
   };
 
   return (
@@ -422,8 +421,17 @@ export const Mst_TransporterPage = () => {
             </div>
           </ContentSearchPanelLayout.Slot>
           <ContentSearchPanelLayout.Slot name={"ContentPanel"}>
+          <LoadPanel
+              container={".dx-viewport"}
+              shadingColor="rgba(0,0,0,0.4)"
+              position={'center'}
+              visible={loadingControl.visible}
+              showIndicator={true}
+              showPane={true}
+            />
+            
             {/* GridView */}
-            <GridViewPopup
+            {!loadingControl.visible && ( <><GridViewPopup
               isLoading={isLoading} // props dùng để render
               dataSource={data?.isSuccess ? data.DataList ?? [] : []} // dữ liệu của gridview lấy từ api
               columns={columns} // các cột ở trong grid view
@@ -450,7 +458,7 @@ export const Mst_TransporterPage = () => {
               storeKey={"Mst_Transporter_Column"} // key lưu trữ giá trị grid view trong localstorage
             />
             {/* popup */}
-            <PopupView handleCancel={handleCancel} handleEdit={handleEdit} />
+            <PopupView handleCancel={handleCancel} handleEdit={handleEdit} /></> )}
           </ContentSearchPanelLayout.Slot>
         </ContentSearchPanelLayout>
       </AdminContentLayout.Slot>

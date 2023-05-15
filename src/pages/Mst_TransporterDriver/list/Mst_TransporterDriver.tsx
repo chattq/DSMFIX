@@ -14,7 +14,7 @@ import { StatusButton } from "@/packages/ui/status-button";
 import { useQuery } from "@tanstack/react-query";
 import { EditorPreparingEvent } from "devextreme/ui/data_grid";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   keywordAtom,
@@ -33,7 +33,7 @@ export const Mst_TransporterDriverPage = () => {
   const keyword = useAtomValue(keywordAtom);
 
   const { data, isLoading, refetch } = useQuery(
-    [keyword],
+    ["TransporterDriver", keyword],
     () =>
       api.Mst_TransporterDriver_Search({
         KeyWord: keyword,
@@ -148,83 +148,86 @@ export const Mst_TransporterDriverPage = () => {
       });
     }
   };
+
   const handleSelectionChanged = (rowKeys: string[]) => {
     setSelectedItems(rowKeys);
   };
 
-  const columns: ColumnOptions[] = [
-    {
-      dataField: "TransporterCode",
-      caption: t("TransporterCode"),
-      editorType: "dxTextBox",
-      visible: true,
+  const columns: ColumnOptions[] = useMemo(
+    () => [
+      {
+        dataField: "TransporterCode",
+        caption: t("TransporterCode"),
+        editorType: "dxTextBox",
+        visible: true,
 
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "DriverId",
-      caption: t("DriverId"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "DriverFullName",
-      caption: t("DriverFullName"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "DriverLicenseNo",
-      caption: t("DriverLicenseNo"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "DriverPhoneNo",
-      caption: t("DriverPhoneNo"),
-      editorType: "dxTextBox",
-      visible: true,
-
-      validationRules: [
-        {
-          type: "required",
-        },
-      ],
-    },
-    {
-      dataField: "FlagActive",
-      caption: t("FlagActive"),
-      editorType: "dxSwitch",
-      visible: true,
-      alignment: "center",
-      width: 120,
-      cellRender: ({ data }: any) => {
-        return <StatusButton isActive={data.FlagActive} />;
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
       },
-    },
-  ];
+      {
+        dataField: "DriverId",
+        caption: t("DriverId"),
+        editorType: "dxTextBox",
+        visible: true,
+
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "DriverFullName",
+        caption: t("DriverFullName"),
+        editorType: "dxTextBox",
+        visible: true,
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "DriverLicenseNo",
+        caption: t("DriverLicenseNo"),
+        editorType: "dxTextBox",
+        visible: true,
+
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "DriverPhoneNo",
+        caption: t("DriverPhoneNo"),
+        editorType: "dxTextBox",
+        visible: true,
+
+        validationRules: [
+          {
+            type: "required",
+          },
+        ],
+      },
+      {
+        dataField: "FlagActive",
+        caption: t("FlagActive"),
+        editorType: "dxSwitch",
+        visible: true,
+        alignment: "center",
+        width: 120,
+        cellRender: ({ data }: any) => {
+          return <StatusButton isActive={data.FlagActive} />;
+        },
+      },
+    ],
+    []
+  );
 
   const handleEditorPreparing = (e: EditorPreparingEvent<any, any>) => {
     if (e.dataField === "TransporterCode" || e.dataField === "DriverId") {

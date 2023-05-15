@@ -19,11 +19,12 @@ import { HeaderPart } from "./header-part";
 import { useSetAtom, useAtomValue } from "jotai";
 import { keywordAtom, selectedItemsAtom } from "../components/screen-atom";
 import { StatusButton } from "@/packages/ui/status-button";
+import { DataGrid } from "devextreme-react";
 
 export const Mst_UnitPriceAVNPage = () => {
   const { t } = useI18n("Mst_UnitPriceAVN");
   const config = useConfiguration();
-  let gridRef: any = useRef(null);
+  let gridRef: any = useRef<DataGrid | null>(null);
   const keyword = useAtomValue(keywordAtom);
   const setSelectedItems = useSetAtom(selectedItemsAtom);
   const api = useClientgateApi();
